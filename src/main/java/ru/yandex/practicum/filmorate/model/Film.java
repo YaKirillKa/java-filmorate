@@ -15,7 +15,7 @@ public class Film {
     @Size(max = 200)
     String description;
     @AfterDate(date = "1895-12-28")
-    String releaseDate;
+    LocalDate releaseDate;
     @Positive
     int duration;
 }

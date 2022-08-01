@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-public class AfterDateValidator implements ConstraintValidator<AfterDate, String> {
+public class AfterDateValidator implements ConstraintValidator<AfterDate, LocalDate> {
 
     String date;
 
@@ -17,17 +17,13 @@ public class AfterDateValidator implements ConstraintValidator<AfterDate, String
     }
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
+    public boolean isValid(LocalDate value, ConstraintValidatorContext context) {
         if (value == null) {
             return false;
         }
-        if (value.isEmpty()) {
-            return false;
-        }
         try {
-            LocalDate parsedDate = LocalDate.parse(value);
             LocalDate parsedAfterDate = LocalDate.parse(date);
-            return parsedDate.isAfter(parsedAfterDate);
+            return value.isAfter(parsedAfterDate);
         } catch (DateTimeParseException e) {
             return false;
         }
