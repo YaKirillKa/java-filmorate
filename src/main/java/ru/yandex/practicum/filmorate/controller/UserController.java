@@ -26,10 +26,7 @@ public class UserController {
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         user.setId(++lastId);
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        users.put(user.getId(), user);
+        updateUser(user);
         return user;
     }
 
@@ -38,10 +35,14 @@ public class UserController {
         if (user.getId() == null) {
             user.setId(++lastId);
         }
+        updateUser(user);
+        return user;
+    }
+
+    private void updateUser(User user) {
         if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         users.put(user.getId(), user);
-        return user;
     }
 }
