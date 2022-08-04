@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
@@ -32,10 +34,14 @@ public class FilmController {
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
-        if (film.getId() == null) {
-            film.setId(++lastId);
+        final Long id = film.getId();
+        if (id == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID should not be null");
         }
-        films.put(film.getId(), film);
+        if (!films.containsKey(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Film with ID: '" + id + "' doesn't exists.");
+        }
+        films.put(id, film);
         return film;
     }
 }

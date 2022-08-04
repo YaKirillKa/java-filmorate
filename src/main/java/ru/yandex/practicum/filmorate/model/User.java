@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 @Data
 public class User {
-    @Min(1)
     Long id;
     @Email
     String email;
