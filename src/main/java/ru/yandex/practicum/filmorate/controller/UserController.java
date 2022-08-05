@@ -29,6 +29,7 @@ public class UserController {
     public User create(@Valid @RequestBody User user) {
         user.setId(++lastId);
         updateUser(user);
+        log.debug("{} has been added.", user);
         return user;
     }
 
@@ -36,19 +37,22 @@ public class UserController {
     public User update(@Valid @RequestBody User user) {
         final Long id = user.getId();
         if (id == null) {
+            log.debug("Got user with null ID: {}", user);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID should not be null");
         }
         if (!users.containsKey(id)) {
+            log.debug("User with ID: {} doesn't exists.", user.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID: '" + id + "' doesn't exists.");
         }
-        updateUser(user);
+        User previous = updateUser(user);
+        log.debug("User updated. Before: {}, after: {}", previous, user);
         return user;
     }
 
-    private void updateUser(User user) {
+    private User updateUser(User user) {
         if (user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        users.put(user.getId(), user);
+        return users.put(user.getId(), user);
     }
 }

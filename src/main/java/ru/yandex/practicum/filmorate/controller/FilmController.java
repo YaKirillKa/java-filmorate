@@ -29,6 +29,7 @@ public class FilmController {
     public Film create(@Valid @RequestBody Film film) {
         film.setId(++lastId);
         films.put(film.getId(), film);
+        log.debug("{} has been added.", film);
         return film;
     }
 
@@ -36,12 +37,15 @@ public class FilmController {
     public Film update(@Valid @RequestBody Film film) {
         final Long id = film.getId();
         if (id == null) {
+            log.debug("Got film with null ID: {}", film);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID should not be null");
         }
         if (!films.containsKey(id)) {
+            log.debug("Film with ID: {} doesn't exists.", film.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Film with ID: '" + id + "' doesn't exists.");
         }
-        films.put(id, film);
+        Film previous = films.put(id, film);
+        log.debug("Film updated. Before: {}, after: {}", previous, film);
         return film;
     }
 }
