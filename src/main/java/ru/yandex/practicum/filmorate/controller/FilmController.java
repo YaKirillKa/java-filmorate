@@ -37,11 +37,9 @@ public class FilmController {
     public Film update(@Valid @RequestBody Film film) {
         final Long id = film.getId();
         if (id == null) {
-            log.debug("Got film with null ID: {}", film);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID should not be null");
         }
         if (!films.containsKey(id)) {
-            log.debug("Film with ID: {} doesn't exists.", film.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Film with ID: '" + id + "' doesn't exists.");
         }
         Film previous = films.put(id, film);

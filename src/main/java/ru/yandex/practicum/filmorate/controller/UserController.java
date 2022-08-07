@@ -37,11 +37,9 @@ public class UserController {
     public User update(@Valid @RequestBody User user) {
         final Long id = user.getId();
         if (id == null) {
-            log.debug("Got user with null ID: {}", user);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID should not be null");
         }
         if (!users.containsKey(id)) {
-            log.debug("User with ID: {} doesn't exists.", user.getId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID: '" + id + "' doesn't exists.");
         }
         User previous = updateUser(user);
