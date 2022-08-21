@@ -25,11 +25,8 @@ public class UserService {
     }
 
     public User findById(Long id) {
-        Optional<User> optionalUser = userStorage.findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException(String.format("User %s not found", id));
-        }
-        return optionalUser.get();
+        return userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("User %s not found", id)));
     }
 
     public User create(User user) {
@@ -42,11 +39,7 @@ public class UserService {
     }
 
     public User update(Long id, User user) {
-        Optional<User> optionalUser = userStorage.findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException(String.format("User %s not found and cannot be updated", id));
-        }
-        User previous = optionalUser.get();
+        User previous = findById(id);
         userStorage.updateUser(id, user);
         log.debug("User updated. Before: {}, after: {}", previous, user);
         return user;

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,11 +27,8 @@ public class FilmService {
     }
 
     public Film findById(Long id) {
-        Optional<Film> optionalFilm = filmStorage.findById(id);
-        if (optionalFilm.isEmpty()) {
-            throw new NotFoundException(String.format("Film %s not found and cannot be updated", id));
-        }
-        return optionalFilm.get();
+        return filmStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Film %s not found and cannot be updated", id)));
     }
 
     public Film create(Film film) {
