@@ -1,18 +1,30 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.yandex.practicum.filmorate.constraints.AfterDate;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
-public class Film {
+public class FilmDto {
     private Long id;
+    @NotBlank
     private String name;
+    @Size(max = 200)
     private String description;
+    @AfterDate(date = "1895-12-28")
     private LocalDate releaseDate;
+    @Positive
     private int duration;
 
-    private Mpa mpa;
-
-    private Set<Genre> genres;
+    @NotNull
+    @JsonProperty(value = "mpa")
+    private MpaDto mpaDto;
+    private List<GenreDto> genres;
 
     public Long getId() {
         return id;
@@ -54,33 +66,20 @@ public class Film {
         this.duration = duration;
     }
 
-    public Mpa getMpa() {
-        return mpa;
+    public MpaDto getMpaDto() {
+        return mpaDto;
     }
 
-    public void setMpa(Mpa mpa) {
-        this.mpa = mpa;
+    public void setMpaDto(MpaDto mpaDto) {
+        this.mpaDto = mpaDto;
     }
 
-    public Set<Genre> getGenres() {
+    public List<GenreDto> getGenres() {
         return genres;
     }
 
-    public void setGenres(Set<Genre> genres) {
+    public void setGenres(List<GenreDto> genres) {
         this.genres = genres;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Film film = (Film) o;
-        return getId().equals(film.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getId().hashCode();
     }
 
     @Override

@@ -1,42 +1,57 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
+    private final ConversionService conversionService;
+    private final UserMapper userMapper;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ConversionService conversionService, UserMapper userMapper) {
         this.userService = userService;
+        this.conversionService = conversionService;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
-    public List<User> findAll() {
-        return userService.findAll();
+    public List<UserDto> findAll() {
+        return userService.findAll().stream()
+                .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public User findById(@PathVariable Long id) {
-        return userService.findById(id);
+    public UserDto findById(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return conversionService.convert(user, UserDto.class);
     }
 
     @GetMapping("{id}/friends")
-    public List<User> getFriends(@PathVariable Long id) {
-        return userService.getFriends(id);
+    public List<UserDto> getFriends(@PathVariable Long id) {
+        return userService.getFriends(id).stream()
+                .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("{id}/friends/common/{otherId}")
-    public List<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
-        return userService.getCommonFriends(id, otherId);
+    public List<UserDto> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        return userService.getCommonFriends(id, otherId).stream()
+                .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
     }
 
     @PutMapping("/{id}/friends/{friendId}")
@@ -50,13 +65,17 @@ public class UserController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public User create(@Valid @NotNull @RequestBody User user) {
-        return userService.create(user);
+    public UserDto create(@Valid @NotNull @RequestBody UserDto userDto) {
+        User user = userMapper.mapToUser(userDto);
+        user = userService.create(user);
+        return conversionService.convert(user, UserDto.class);
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public User update(@Valid @NotNull @RequestBody User user) {
-        return userService.update(user.getId(), user);
+    public UserDto update(@Valid @NotNull @RequestBody UserDto userDto) {
+        User user = userMapper.mapToUser(userDto);
+        user = userService.update(user.getId(), user);
+        return conversionService.convert(user, UserDto.class);
     }
 
 }

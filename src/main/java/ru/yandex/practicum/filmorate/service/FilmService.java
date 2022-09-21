@@ -1,70 +1,70 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.film.FilmDao;
+import ru.yandex.practicum.filmorate.dao.likes.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class FilmService {
 
-    private final FilmStorage filmStorage;
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final FilmDao filmDao;
+    private final LikesDao likesDao;
     private final UserService userService;
 
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
+    public FilmService(FilmDao filmDao, LikesDao likesDao, UserService userService) {
+        this.filmDao = filmDao;
+        this.likesDao = likesDao;
         this.userService = userService;
     }
 
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        return filmDao.findAll();
     }
 
     public Film findById(Long id) {
-        return filmStorage.findById(id)
+        return filmDao.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Film %s not found and cannot be updated", id)));
     }
 
     public Film create(Film film) {
-        Film savedFilm = filmStorage.createFilm(film);
+        Film savedFilm = filmDao.createFilm(film);
         log.debug("{} has been added.", savedFilm);
         return savedFilm;
     }
 
     public Film update(Long id, Film film) {
         Film previous = findById(id);
-        filmStorage.updateFilm(id, film);
+        filmDao.updateFilm(id, film);
         log.debug("Film updated. Before: {}, after: {}", previous, film);
         return film;
     }
 
     public void addLike(Long id, Long userId) {
-        Film film = findById(id);
-        User user = userService.findById(userId);
-        film.getLikes().add(user.getId());
-        log.debug("User {} liked film {}", userId, id);
+        if (userService.existById(userId)) {
+            likesDao.addLike(userId, id);
+            log.debug("User {} liked film {}", userId, id);
+        } else {
+            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
+        }
     }
 
     public void removeLike(Long id, Long userId) {
-        Film film = findById(id);
-        User user = userService.findById(userId);
-        if (film.getLikes().remove(user.getId())) {
+        if (userService.existById(userId)) {
+            likesDao.removeLike(userId, id);
             log.debug("User {} removed like from film {}", userId, id);
-            return;
+        } else {
+            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
         }
-        throw new NotFoundException(String.format("User %s did not like film %s", userId, id));
     }
 
     public List<Film> getPopular(Integer count) {
-        return findAll().stream()
-                .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
-                .limit(count)
-                .collect(Collectors.toList());
+        return likesDao.getPopular(count);
     }
 }
