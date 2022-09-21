@@ -44,36 +44,38 @@ public class FilmDaoImpl implements FilmDao {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
-    private final MpaDao mpaDao;
     private final GenreDao genreDao;
     private final RowMapper<Film> filmMapper;
 
     @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao, GenreDao genreDao, RowMapper<Film> filmMapper) {
+    public FilmDaoImpl(JdbcTemplate jdbcTemplate, GenreDao genreDao, RowMapper<Film> filmMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.mpaDao = mpaDao;
         this.genreDao = genreDao;
         this.filmMapper = filmMapper;
     }
 
     @Override
+    @Transactional
     public List<Film> findAll() {
-        return jdbcTemplate.query(SELECT_ALL_SQL, filmMapper);
+        List<Film> films = jdbcTemplate.query(SELECT_ALL_SQL, filmMapper);
+        for (Film film : films) {
+            Set<Genre> genres = new HashSet<>(genreDao.findByFilmId(film.getId()));
+            film.setGenres(genres);
+        }
+        return films;
     }
 
     @Override
+    @Transactional
     public Optional<Film> findById(Long id) {
         Film film = null;
-        Mpa mpa ;
         Set<Genre> genres;
         try {
             film = jdbcTemplate.queryForObject(SELECT_FILM_SQL, filmMapper, id);
             if (film == null) {
                 return Optional.empty();
             }
-            mpa = mpaDao.findById(film.getMpa().getId()).orElse(null);
             genres = new HashSet<>(genreDao.findByFilmId(id));
-            film.setMpa(mpa);
             film.setGenres(genres);
         } catch (DataAccessException e) {
             log.debug("Wrong ID: {}, message: {}", id, e.getMessage());
