@@ -28,17 +28,10 @@ import java.util.stream.Collectors;
 public class FilmDaoImpl implements FilmDao {
 
     private static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM film WHERE id = ?)";
-    private static final String SELECT_ALL_SQL = "SELECT * FROM film";
-    private static final String SELECT_FILM_SQL = "SELECT f.id as id," +
-            "f.name as name, " +
-            "f.DESCRIPTION as description, " +
-            "f.RELEASE_DATE as release_date, " +
-            "f.DURATION as duration, " +
-            "m.id as mpa_id, " +
-            "m.NAME as mpa_name " +
-            "FROM film f " +
-            "LEFT JOIN mpa m ON m.id = f.mpa_id " +
-            "WHERE f.id = ?";
+    private static final String SELECT_ALL_SQL = "SELECT f.*, m.NAME as mpa_name " +
+            "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id";
+    private static final String SELECT_FILM_SQL = "SELECT f.*, m.NAME as mpa_name " +
+            "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id WHERE f.id = ?";
     private static final String INSERT_FILM_SQL = "INSERT INTO film(name, description, release_date, duration, mpa_id) " +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE_FILM_SQL = "UPDATE film SET name = ?, description = ?, release_date = ?, " +
