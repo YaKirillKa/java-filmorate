@@ -17,7 +17,7 @@ public class LikesDaoImpl implements LikesDao {
             "FROM film LEFT JOIN film_likes fl ON film.id = fl.film_id " +
             "LEFT JOIN mpa ON mpa.id = mpa_id " +
             "GROUP BY film.id " +
-            "ORDER BY rate DESC " +
+            "ORDER BY rate DESC, film.id " +
             "LIMIT ?";
 
     private final JdbcTemplate jdbcTemplate;

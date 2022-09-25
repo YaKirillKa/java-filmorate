@@ -15,10 +15,10 @@ import java.util.Optional;
 
 @Repository
 public class GenreDaoImpl implements GenreDao {
-    private static final String SELECT_ALL_SQL = "SELECT * FROM genre";
+    private static final String SELECT_ALL_SQL = "SELECT * FROM genre ORDER BY id";
     public static final String SELECT_GENRE_SQL = "SELECT * FROM genre WHERE id = ?";
     public static final String SELECT_GENRE_BY_FILM_SQL = "SELECT * FROM genre " +
-            "WHERE id in (SELECT genre_id FROM film_genre WHERE film_id = ?)";
+            "WHERE id in (SELECT genre_id FROM film_genre WHERE film_id = ?) ORDER BY id";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
