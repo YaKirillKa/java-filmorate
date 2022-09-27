@@ -11,14 +11,15 @@ import java.util.List;
 @Repository
 public class LikesDaoImpl implements LikesDao {
 
-    public static final String DELETE_LIKE_SQL = "DELETE FROM film_likes WHERE user_id = ? AND film_id = ?";
-    public static final String INSERT_LIKE_SQL = "INSERT INTO film_likes values ( ? , ? )";
-    public static final String SELECT_POPULAR_SQL = "SELECT film.*, mpa.name as mpa_name, count(user_id) rate " +
+    private static final String DELETE_LIKE_SQL = "DELETE FROM film_likes WHERE user_id = ? AND film_id = ?";
+    private static final String INSERT_LIKE_SQL = "INSERT INTO film_likes values ( ? , ? )";
+    private static final String SELECT_POPULAR_SQL = "SELECT film.*, mpa.name as mpa_name, count(user_id) rate " +
             "FROM film LEFT JOIN film_likes fl ON film.id = fl.film_id " +
             "LEFT JOIN mpa ON mpa.id = mpa_id " +
             "GROUP BY film.id " +
             "ORDER BY rate DESC, film.id " +
             "LIMIT ?";
+    private static final String SELECT_LIKE_EXIST = "SELECT count(*) FROM film_likes WHERE user_id = ? AND film_id = ?";
 
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Film> rowMapper;
@@ -42,5 +43,10 @@ public class LikesDaoImpl implements LikesDao {
     @Override
     public List<Film> getPopular(int count) {
         return jdbcTemplate.query(SELECT_POPULAR_SQL, rowMapper, count);
+    }
+
+    @Override
+    public boolean isLikeExist(Long userId, Long filmId) {
+        return jdbcTemplate.queryForObject(SELECT_LIKE_EXIST, Integer.class, userId, filmId) > 0;
     }
 }

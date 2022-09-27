@@ -91,6 +91,8 @@ public class Film {
                 ", description='" + description + '\'' +
                 ", releaseDate=" + releaseDate +
                 ", duration=" + duration +
+                ", mpa=" + mpa +
+                ", genres=" + genres +
                 '}';
     }
 }

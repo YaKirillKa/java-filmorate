@@ -11,4 +11,6 @@ public interface LikesDao {
     void removeLike(Long userId, Long filmId);
 
     List<Film> getPopular(int count);
+
+    boolean isLikeExist(Long userId, Long filmId);
 }

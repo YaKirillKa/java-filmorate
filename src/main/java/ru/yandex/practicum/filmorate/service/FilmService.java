@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.film.FilmDao;
 import ru.yandex.practicum.filmorate.dao.likes.LikesDao;
+import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -13,6 +14,8 @@ import java.util.List;
 @Service
 public class FilmService {
 
+    private static final String FILM_WITH_ID_NOT_FOUND_DEBUG = "Film with id {} not found";
+    public static final String FILM_NOT_FOUND = "Film %s doesn't exist";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final FilmDao filmDao;
     private final LikesDao likesDao;
@@ -30,7 +33,7 @@ public class FilmService {
 
     public Film findById(Long id) {
         return filmDao.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Film %s not found and cannot be updated", id)));
+                .orElseThrow(() -> new NotFoundException(String.format(FILM_NOT_FOUND, id)));
     }
 
     public Film create(Film film) {
@@ -47,24 +50,41 @@ public class FilmService {
     }
 
     public void addLike(Long id, Long userId) {
-        if (userService.existById(userId)) {
-            likesDao.addLike(userId, id);
-            log.debug("User {} liked film {}", userId, id);
-        } else {
-            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
+        validateExisting(id, userId);
+        if (likesDao.isLikeExist(userId, id)) {
+            log.debug("User with ID {} has already liked film with ID {}", userId, id);
+            throw new LikeDoesntExistException(
+                    String.format("User with ID %s has already liked film with ID %s", userId, id)
+            );
         }
+        likesDao.addLike(userId, id);
+        log.debug("User {} liked film {}", userId, id);
     }
 
     public void removeLike(Long id, Long userId) {
-        if (userService.existById(userId)) {
-            likesDao.removeLike(userId, id);
-            log.debug("User {} removed like from film {}", userId, id);
-        } else {
-            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
+        validateExisting(id, userId);
+        if (!likesDao.isLikeExist(userId, id)) {
+            log.debug("User with ID {} has not liked film with ID {}", userId, id);
+            throw new LikeDoesntExistException(
+                    String.format("User with ID %s has not liked film with ID %s", userId, id)
+            );
         }
+        likesDao.removeLike(userId, id);
+        log.debug("User {} removed like from film {}", userId, id);
     }
 
     public List<Film> getPopular(Integer count) {
         return likesDao.getPopular(count);
+    }
+
+    private void validateExisting(Long filmId, Long userId) {
+        if (!filmDao.existsById(filmId)) {
+            log.debug(FILM_WITH_ID_NOT_FOUND_DEBUG, filmId);
+            throw new NotFoundException(String.format(FILM_NOT_FOUND, filmId));
+        }
+        if (!userService.existById(userId)) {
+            log.debug(UserService.USER_WITH_ID_NOT_FOUND_DEBUG, userId);
+            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
+        }
     }
 }

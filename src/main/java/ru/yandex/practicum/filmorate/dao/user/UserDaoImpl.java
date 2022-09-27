@@ -18,18 +18,18 @@ import java.util.*;
 
 @Repository
 public class UserDaoImpl implements UserDao {
-    public static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM app_user WHERE id = ?)";
+    private static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM app_user WHERE id = ?)";
     private static final String SELECT_ALL_SQL = "SELECT * FROM app_user";
-    public static final String SELECT_USER_SQL = "SELECT * FROM app_user WHERE id = ?";
-    public static final String INSERT_USER_SQL = "INSERT INTO app_user(email, login, name, birthday)" +
+    private static final String SELECT_USER_SQL = "SELECT * FROM app_user WHERE id = ?";
+    private static final String INSERT_USER_SQL = "INSERT INTO app_user(email, login, name, birthday)" +
             "VALUES (?, ?, ?, ?)";
-    public static final String UPDATE_USER_SQL = "UPDATE app_user SET email = ?, login = ?, name = ?, birthday = ? " +
+    private static final String UPDATE_USER_SQL = "UPDATE app_user SET email = ?, login = ?, name = ?, birthday = ? " +
             "WHERE id = ?";
-    public static final String DELETE_USER_SQL = "DELETE FROM app_user WHERE id = ?";
-    public static final String SELECT_FRIENDS_SQL = "SELECT * FROM app_user WHERE id IN " +
+    private static final String DELETE_USER_SQL = "DELETE FROM app_user WHERE id = ?";
+    private static final String SELECT_FRIENDS_SQL = "SELECT * FROM app_user WHERE id IN " +
             "(SELECT friend_id FROM user_friend WHERE user_id = ?)";
-    public static final String INSERT_FRIEND_SQL = "INSERT INTO user_friend VALUES(?, ?)";
-    public static final String DELETE_FRIEND_SQL = "DELETE FROM user_friend WHERE user_id = ? AND friend_id = ?";
+    private static final String INSERT_FRIEND_SQL = "INSERT INTO user_friend VALUES(?, ?)";
+    private static final String DELETE_FRIEND_SQL = "DELETE FROM user_friend WHERE user_id = ? AND friend_id = ?";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;

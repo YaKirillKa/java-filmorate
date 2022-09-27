@@ -84,12 +84,14 @@ public class FilmDto {
 
     @Override
     public String toString() {
-        return "Film{" +
+        return "FilmDto{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", releaseDate=" + releaseDate +
                 ", duration=" + duration +
+                ", mpaDto=" + mpaDto +
+                ", genres=" + genres +
                 '}';
     }
 }

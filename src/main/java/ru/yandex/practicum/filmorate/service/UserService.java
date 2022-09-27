@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     public static final String USER_NOT_FOUND = "User %s not found";
+    public static final String USER_WITH_ID_NOT_FOUND_DEBUG = "User with id {} not found";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final UserDao userDao;
 
@@ -41,6 +42,7 @@ public class UserService {
 
     public User update(Long id, User user) {
         if (!userDao.existsById(id)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
             throw new NotFoundException(String.format(USER_NOT_FOUND, id));
         }
         User previous = findById(id);
@@ -50,40 +52,27 @@ public class UserService {
     }
 
     public void addFriend(Long id, Long friendId) {
-        if (!userDao.existsById(id)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
-        }
-        if (!userDao.existsById(friendId)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, friendId));
-        }
+        validateUsers(id, friendId);
         userDao.addFriend(id, friendId);
         log.debug("User {} is friends with user {}", id, friendId);
     }
 
     public void removeFriend(Long id, Long friendId) {
-        if (!userDao.existsById(id)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
-        }
-        if (!userDao.existsById(friendId)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, friendId));
-        }
+        validateUsers(id, friendId);
         userDao.removeFriend(id, friendId);
+        log.debug("User {} is not friends with user {}", id, friendId);
     }
 
     public List<User> getFriends(Long id) {
         if (userDao.existsById(id)) {
             return userDao.getFriends(id);
         }
+        log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
         throw new NotFoundException(String.format(USER_NOT_FOUND, id));
     }
 
     public List<User> getCommonFriends(Long id, Long otherId) {
-        if (!userDao.existsById(id)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
-        }
-        if (!userDao.existsById(otherId)) {
-            throw new NotFoundException(String.format(USER_NOT_FOUND, otherId));
-        }
+        validateUsers(id, otherId);
         List<User> userList = userDao.getFriends(id);
         List<User> otherUserList = userDao.getFriends(otherId);
 
@@ -95,5 +84,16 @@ public class UserService {
 
     public boolean existById(Long id) {
         return userDao.existsById(id);
+    }
+
+    private void validateUsers(Long id, Long otherId) {
+        if (!userDao.existsById(id)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
+            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
+        }
+        if (!userDao.existsById(otherId)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, otherId);
+            throw new NotFoundException(String.format(USER_NOT_FOUND, otherId));
+        }
     }
 }

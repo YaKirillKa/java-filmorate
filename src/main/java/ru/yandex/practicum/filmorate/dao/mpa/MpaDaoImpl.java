@@ -17,7 +17,7 @@ import java.util.Optional;
 public class MpaDaoImpl implements MpaDao {
 
     private static final String SELECT_ALL_SQL = "SELECT * FROM mpa ORDER BY id";
-    public static final String SELECT_MPA_SQL = "SELECT * FROM mpa WHERE id = ?";
+    private static final String SELECT_MPA_SQL = "SELECT * FROM mpa WHERE id = ?";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
