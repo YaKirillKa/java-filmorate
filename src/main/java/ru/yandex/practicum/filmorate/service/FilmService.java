@@ -1,70 +1,90 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.film.FilmDao;
+import ru.yandex.practicum.filmorate.dao.likes.LikesDao;
+import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class FilmService {
 
-    private final FilmStorage filmStorage;
+    private static final String FILM_WITH_ID_NOT_FOUND_DEBUG = "Film with id {} not found";
+    public static final String FILM_NOT_FOUND = "Film %s doesn't exist";
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final FilmDao filmDao;
+    private final LikesDao likesDao;
     private final UserService userService;
 
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
+    public FilmService(FilmDao filmDao, LikesDao likesDao, UserService userService) {
+        this.filmDao = filmDao;
+        this.likesDao = likesDao;
         this.userService = userService;
     }
 
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        return filmDao.findAll();
     }
 
     public Film findById(Long id) {
-        return filmStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Film %s not found and cannot be updated", id)));
+        return filmDao.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format(FILM_NOT_FOUND, id)));
     }
 
     public Film create(Film film) {
-        Film savedFilm = filmStorage.createFilm(film);
+        Film savedFilm = filmDao.createFilm(film);
         log.debug("{} has been added.", savedFilm);
         return savedFilm;
     }
 
     public Film update(Long id, Film film) {
         Film previous = findById(id);
-        filmStorage.updateFilm(id, film);
+        filmDao.updateFilm(id, film);
         log.debug("Film updated. Before: {}, after: {}", previous, film);
         return film;
     }
 
     public void addLike(Long id, Long userId) {
-        Film film = findById(id);
-        User user = userService.findById(userId);
-        film.getLikes().add(user.getId());
+        validateExisting(id, userId);
+        if (likesDao.isLikeExist(userId, id)) {
+            log.debug("User with ID {} has already liked film with ID {}", userId, id);
+            throw new LikeDoesntExistException(
+                    String.format("User with ID %s has already liked film with ID %s", userId, id)
+            );
+        }
+        likesDao.addLike(userId, id);
         log.debug("User {} liked film {}", userId, id);
     }
 
     public void removeLike(Long id, Long userId) {
-        Film film = findById(id);
-        User user = userService.findById(userId);
-        if (film.getLikes().remove(user.getId())) {
-            log.debug("User {} removed like from film {}", userId, id);
-            return;
+        validateExisting(id, userId);
+        if (!likesDao.isLikeExist(userId, id)) {
+            log.debug("User with ID {} has not liked film with ID {}", userId, id);
+            throw new LikeDoesntExistException(
+                    String.format("User with ID %s has not liked film with ID %s", userId, id)
+            );
         }
-        throw new NotFoundException(String.format("User %s did not like film %s", userId, id));
+        likesDao.removeLike(userId, id);
+        log.debug("User {} removed like from film {}", userId, id);
     }
 
     public List<Film> getPopular(Integer count) {
-        return findAll().stream()
-                .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
-                .limit(count)
-                .collect(Collectors.toList());
+        return likesDao.getPopular(count);
+    }
+
+    private void validateExisting(Long filmId, Long userId) {
+        if (!filmDao.existsById(filmId)) {
+            log.debug(FILM_WITH_ID_NOT_FOUND_DEBUG, filmId);
+            throw new NotFoundException(String.format(FILM_NOT_FOUND, filmId));
+        }
+        if (!userService.existById(userId)) {
+            log.debug(UserService.USER_WITH_ID_NOT_FOUND_DEBUG, userId);
+            throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
+        }
     }
 }

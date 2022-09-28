@@ -1,12 +1,18 @@
-package ru.yandex.practicum.filmorate.model;
+package ru.yandex.practicum.filmorate.dto;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 
-public class User {
+public class UserDto {
     private Long id;
+    @Email
     private String email;
-    private String name;
+    @NotBlank(message = "Login should not be empty.")
     private String login;
+    private String name;
+    @Past(message = "Birthday should be in the past.")
     private LocalDate birthday;
 
     public Long getId() {
@@ -47,21 +53,6 @@ public class User {
 
     public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User user = (User) o;
-
-        return getId().equals(user.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getId().hashCode();
     }
 
     @Override

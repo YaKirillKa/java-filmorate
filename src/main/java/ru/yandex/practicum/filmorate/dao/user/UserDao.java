@@ -1,11 +1,11 @@
-package ru.yandex.practicum.filmorate.storage.user;
+package ru.yandex.practicum.filmorate.dao.user;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface UserStorage {
+public interface UserDao {
 
     /**
      * Returns all users.
@@ -52,4 +52,28 @@ public interface UserStorage {
      * @param id of the user to be removed.
      */
     void deleteById(Long id);
+
+    /**
+     * Adds the user to the friends list.
+     *
+     * @param userId id of the {@link User} who adds.
+     * @param friendId id of the {@link User} who should be added.
+     */
+    void addFriend(Long userId, Long friendId);
+
+    /**
+     * Removes the user from the friends list.
+     *
+     * @param userId id of the {@link User} who removes.
+     * @param friendId id of the {@link User} who should be removed.
+     */
+    void removeFriend(Long userId, Long friendId);
+
+    /**
+     * Returns {@link List} of friends.
+     *
+     * @param id of the user which friends should be returned.
+     * @return {@link List} of {@link User} or empty list.
+     */
+    List<User> getFriends(Long id);
 }
