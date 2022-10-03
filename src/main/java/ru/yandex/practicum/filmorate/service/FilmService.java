@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.event.EventDao;
 import ru.yandex.practicum.filmorate.dao.film.FilmDao;
 import ru.yandex.practicum.filmorate.dao.likes.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
@@ -19,12 +21,14 @@ public class FilmService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final FilmDao filmDao;
     private final LikesDao likesDao;
+    private final EventDao eventDao;
     private final UserService userService;
 
-    public FilmService(FilmDao filmDao, LikesDao likesDao, UserService userService) {
+    public FilmService(FilmDao filmDao, LikesDao likesDao, UserService userService, EventDao eventDao) {
         this.filmDao = filmDao;
         this.likesDao = likesDao;
         this.userService = userService;
+        this.eventDao = eventDao;
     }
 
     public List<Film> findAll() {
@@ -57,6 +61,7 @@ public class FilmService {
                     String.format("User with ID %s has already liked film with ID %s", userId, id)
             );
         }
+        eventDao.addEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.ADD, id));
         likesDao.addLike(userId, id);
         log.debug("User {} liked film {}", userId, id);
     }
@@ -69,6 +74,7 @@ public class FilmService {
                     String.format("User with ID %s has not liked film with ID %s", userId, id)
             );
         }
+        eventDao.addEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.REMOVE, id));
         likesDao.removeLike(userId, id);
         log.debug("User {} removed like from film {}", userId, id);
     }
