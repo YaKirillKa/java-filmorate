@@ -4,6 +4,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -45,6 +46,20 @@ public class FilmController {
         return filmService.getPopular(count).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/director/{id}")
+    public List<FilmDto> findDirectorByFilmId(
+            @PathVariable Long id,
+            @RequestParam(name = "sortBy", defaultValue = "year", required = false) String sort
+    ) {
+        if (List.of("year", "likes").contains(sort)) {
+            return filmService.findFilmsByDirectorId(id, sort).stream()
+                    .map(film -> conversionService.convert(film, FilmDto.class))
+                    .collect(Collectors.toList());
+        } else {
+            throw new NotFoundException(String.format("Unknown sorting type: %s", sort));
+        }
     }
 
     @PutMapping("/{id}/like/{userId}")
