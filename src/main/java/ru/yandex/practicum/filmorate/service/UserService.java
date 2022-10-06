@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dao.event.EventDao;
 import ru.yandex.practicum.filmorate.dao.user.UserDao;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,9 +19,11 @@ public class UserService {
     public static final String USER_WITH_ID_NOT_FOUND_DEBUG = "User with id {} not found";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final UserDao userDao;
+    private final EventDao eventDao;
 
-    public UserService(UserDao userDao) {
+    public UserService(UserDao userDao, EventDao eventDao) {
         this.userDao = userDao;
+        this.eventDao = eventDao;
     }
 
     public List<User> findAll() {
@@ -54,12 +58,14 @@ public class UserService {
     public void addFriend(Long id, Long friendId) {
         validateUsers(id, friendId);
         userDao.addFriend(id, friendId);
+        eventDao.addEvent(new Event(id, Event.EventType.FRIEND, Event.Operation.ADD, friendId));
         log.debug("User {} is friends with user {}", id, friendId);
     }
 
     public void removeFriend(Long id, Long friendId) {
         validateUsers(id, friendId);
         userDao.removeFriend(id, friendId);
+        eventDao.addEvent(new Event(id, Event.EventType.FRIEND, Event.Operation.REMOVE, friendId));
         log.debug("User {} is not friends with user {}", id, friendId);
     }
 
@@ -69,6 +75,14 @@ public class UserService {
         }
         log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
         throw new NotFoundException(String.format(USER_NOT_FOUND, id));
+    }
+
+    public List<Event> getFeed(Long id) {
+        if (!userDao.existsById(id)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
+            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
+        }
+        return eventDao.getFeed(id);
     }
 
     public List<User> getCommonFriends(Long id, Long otherId) {

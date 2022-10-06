@@ -3,13 +3,19 @@ package ru.yandex.practicum.filmorate.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.director.DirectorDao;
+import ru.yandex.practicum.filmorate.dao.event.EventDao;
 import ru.yandex.practicum.filmorate.dao.film.FilmDao;
 import ru.yandex.practicum.filmorate.dao.likes.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -19,12 +25,16 @@ public class FilmService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final FilmDao filmDao;
     private final LikesDao likesDao;
+    private final DirectorDao directorDao;
+    private final EventDao eventDao;
     private final UserService userService;
 
-    public FilmService(FilmDao filmDao, LikesDao likesDao, UserService userService) {
+    public FilmService(FilmDao filmDao, LikesDao likesDao, DirectorDao directorDao, UserService userService, EventDao eventDao) {
         this.filmDao = filmDao;
         this.likesDao = likesDao;
+        this.directorDao = directorDao;
         this.userService = userService;
+        this.eventDao = eventDao;
     }
 
     public List<Film> findAll() {
@@ -46,6 +56,7 @@ public class FilmService {
         Film previous = findById(id);
         filmDao.updateFilm(id, film);
         log.debug("Film updated. Before: {}, after: {}", previous, film);
+        film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));
         return film;
     }
 
@@ -57,6 +68,7 @@ public class FilmService {
                     String.format("User with ID %s has already liked film with ID %s", userId, id)
             );
         }
+        eventDao.addEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.ADD, id));
         likesDao.addLike(userId, id);
         log.debug("User {} liked film {}", userId, id);
     }
@@ -69,12 +81,24 @@ public class FilmService {
                     String.format("User with ID %s has not liked film with ID %s", userId, id)
             );
         }
+        eventDao.addEvent(new Event(userId, Event.EventType.LIKE, Event.Operation.REMOVE, id));
         likesDao.removeLike(userId, id);
         log.debug("User {} removed like from film {}", userId, id);
     }
 
     public List<Film> getPopular(Integer count) {
         return likesDao.getPopular(count);
+    }
+
+    public List<Film> findFilmsByDirectorId(Long id, String sort) {
+        if (!directorDao.existsById(id)) {
+            throw new NotFoundException(String.format("Director with ID = %d not found", id));
+        }
+        return directorDao.findFilmsIdByDirectorId(id, sort).stream()
+                .map(filmDao::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     private void validateExisting(Long filmId, Long userId) {

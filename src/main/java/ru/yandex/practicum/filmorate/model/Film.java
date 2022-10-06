@@ -13,6 +13,7 @@ public class Film {
     private Mpa mpa;
 
     private Set<Genre> genres;
+    private Set<Director> directors;
 
     public Long getId() {
         return id;
@@ -70,6 +71,14 @@ public class Film {
         this.genres = genres;
     }
 
+    public Set<Director> getDirectors() {
+        return directors;
+    }
+
+    public void setDirectors(Set<Director> directors) {
+        this.directors = directors;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,6 +102,7 @@ public class Film {
                 ", duration=" + duration +
                 ", mpa=" + mpa +
                 ", genres=" + genres +
+                ", directors=" + directors +
                 '}';
     }
 }
