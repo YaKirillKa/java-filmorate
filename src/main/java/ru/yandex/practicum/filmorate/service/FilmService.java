@@ -16,6 +16,7 @@ public class FilmService {
 
     private static final String FILM_WITH_ID_NOT_FOUND_DEBUG = "Film with id {} not found";
     public static final String FILM_NOT_FOUND = "Film %s doesn't exist";
+    public static final String USER_NOT_FOUND = "User with id %d doesn't exists";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final FilmDao filmDao;
     private final LikesDao likesDao;
@@ -75,6 +76,15 @@ public class FilmService {
 
     public List<Film> getPopular(Integer count) {
         return likesDao.getPopular(count);
+    }
+
+    public List<Film> getCommonFilms(Long userId, Long friendId) {
+        if (!userService.existById(userId)) {
+            throw new NotFoundException(String.format(USER_NOT_FOUND, userId));
+        } else if (!userService.existById(friendId)) {
+            throw new NotFoundException(String.format(USER_NOT_FOUND, friendId));
+        }
+        return filmDao.findCommonFilmsByUsersId(userId, friendId);
     }
 
     private void validateExisting(Long filmId, Long userId) {

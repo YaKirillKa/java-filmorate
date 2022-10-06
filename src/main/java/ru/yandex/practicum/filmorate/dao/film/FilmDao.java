@@ -53,4 +53,12 @@ public interface FilmDao {
      */
     void deleteById(Long id);
 
+
+    /**
+     * Finding {@link Film} that both users have liked
+     * @param userId of a first user.
+     * @param friendId of a other user
+     * @return {@link List<Film>}
+     */
+    List<Film> findCommonFilmsByUsersId(Long userId, Long friendId);
 }

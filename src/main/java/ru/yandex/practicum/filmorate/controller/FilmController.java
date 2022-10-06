@@ -47,6 +47,16 @@ public class FilmController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(
+            @RequestParam(name = "userId") Long userId,
+            @RequestParam(name = "friendId") Long otherId
+    ) {
+        return filmService.getCommonFilms(userId, otherId).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {
         filmService.addLike(id, userId);
