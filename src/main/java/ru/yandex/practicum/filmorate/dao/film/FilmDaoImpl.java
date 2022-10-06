@@ -127,7 +127,7 @@ public class FilmDaoImpl implements FilmDao {
                 film.getMpa().getId(),
                 id);
         if (film.getGenres() == null) {
-            film.setGenres(new HashSet<>());
+            film.setGenres(Collections.emptySet());
         }
         List<Long> currentGenres = jdbcTemplate.query(SELECT_GENRES_FILM_SQL,
                 ((rs, rowNum) -> rs.getLong("genre_id")), id);
@@ -142,7 +142,7 @@ public class FilmDaoImpl implements FilmDao {
         updateFilmData(film, INSERT_FILM_GENRES_SQL, genresToInsert);
 
         if (film.getDirectors() == null) {
-            film.setDirectors(new HashSet<>());
+            film.setDirectors(Collections.emptySet());
         }
         List<Long> currentDirectors = jdbcTemplate.query(SELECT_FILM_DIRECTORS_SQL,
                 ((rs, rowNum) -> rs.getLong("director_id")), id);
@@ -167,42 +167,6 @@ public class FilmDaoImpl implements FilmDao {
     public void deleteById(Long id) {
         jdbcTemplate.update(DELETE_FILM_SQL, id);
     }
-
-//    private void updateGenres(Film film, String query, List<Long> genresId) {
-//        if (genresId.isEmpty()) {
-//            return;
-//        }
-//        jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
-//            @Override
-//            public void setValues(PreparedStatement ps, int i) throws SQLException {
-//                ps.setLong(1, film.getId());
-//                ps.setLong(2, genresId.get(i));
-//            }
-//
-//            @Override
-//            public int getBatchSize() {
-//                return genresId.size();
-//            }
-//        });
-//    }
-//
-//    private void updateDirectors(Film film, String query, List<Long> directorsId) {
-//        if (directorsId.isEmpty()) {
-//            return;
-//        }
-//        jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
-//            @Override
-//            public void setValues(PreparedStatement ps, int i) throws SQLException {
-//                ps.setLong(1, film.getId());
-//                ps.setLong(2, directorsId.get(i));
-//            }
-//
-//            @Override
-//            public int getBatchSize() {
-//                return directorsId.size();
-//            }
-//        });
-//    }
 
     private void updateFilmData(Film film, String query, List<Long> data) {
         if (data.isEmpty()) {

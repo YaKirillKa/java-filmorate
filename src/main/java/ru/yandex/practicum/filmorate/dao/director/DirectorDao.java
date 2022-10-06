@@ -13,7 +13,7 @@ public interface DirectorDao {
 
     List<Director> findByFilmId(Long id);
 
-    List<Long> findFilmsByDirectorId(Long id, String sort);
+    List<Long> findFilmsIdByDirectorId(Long id, String sort);
 
     Director createDirector(Director director);
 

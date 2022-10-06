@@ -67,7 +67,7 @@ public class DirectorDaoImpl implements DirectorDao {
     }
 
     @Override
-    public List<Long> findFilmsByDirectorId(Long id, String sort) {
+    public List<Long> findFilmsIdByDirectorId(Long id, String sort) {
         if (sort.equals("year")) {
             return jdbcTemplate.queryForList(SELECT_FILMS_BY_DIRECTOR_ID_SORTED_DATE, Long.class, id);
         } else {

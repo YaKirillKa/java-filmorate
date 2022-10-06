@@ -60,7 +60,6 @@ public class FilmController {
         } else {
             throw new NotFoundException(String.format("Unknown sorting type: %s", sort));
         }
-
     }
 
     @PutMapping("/{id}/like/{userId}")

@@ -12,8 +12,8 @@ import java.util.List;
 
 @Service
 public class DirectorService {
-    private static final String DIRECTOR_NOT_FOUND = "Director with ID = %d not found";
-    private static final String DIRECTOR_ALREADY_EXISTS = "Director with ID = %d already exists";
+    private static final String DIRECTOR_NOT_FOUND = "Director with id %d not found";
+    private static final String DIRECTOR_ALREADY_EXISTS = "Director with id %d already exists";
     private final DirectorDao directorDao;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -21,7 +21,6 @@ public class DirectorService {
     public DirectorService(DirectorDao directorDao) {
         this.directorDao = directorDao;
     }
-
 
     public List<Director> findAll() {
         return directorDao.findAll();

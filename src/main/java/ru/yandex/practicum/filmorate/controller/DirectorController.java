@@ -21,7 +21,8 @@ public class DirectorController {
     private final DirectorMapper directorMapper;
     private final ConversionService conversionService;
 
-    public DirectorController(DirectorService directorService, DirectorMapper directorMapper, ConversionService conversionService) {
+    public DirectorController(DirectorService directorService,
+                              DirectorMapper directorMapper, ConversionService conversionService) {
         this.directorService = directorService;
         this.directorMapper = directorMapper;
         this.conversionService = conversionService;

@@ -88,7 +88,7 @@ public class FilmService {
         if (!directorDao.existsById(id)) {
             throw new NotFoundException(String.format("Director with ID = %d not found", id));
         }
-        return directorDao.findFilmsByDirectorId(id, sort).stream()
+        return directorDao.findFilmsIdByDirectorId(id, sort).stream()
                 .map(filmDao::findById)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
