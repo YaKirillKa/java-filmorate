@@ -77,8 +77,12 @@ public class UserService {
         throw new NotFoundException(String.format(USER_NOT_FOUND, id));
     }
 
-    public List<Event> getFeed(Long userId) {
-        return eventDao.getFeed(userId);
+    public List<Event> getFeed(Long id) {
+        if (!userDao.existsById(id)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
+            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
+        }
+        return eventDao.getFeed(id);
     }
 
     public List<User> getCommonFriends(Long id, Long otherId) {
