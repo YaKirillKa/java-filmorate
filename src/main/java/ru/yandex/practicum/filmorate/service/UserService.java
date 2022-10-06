@@ -55,6 +55,15 @@ public class UserService {
         return user;
     }
 
+    public void removeUser(Long id) {
+        if (!userDao.existsById(id)) {
+            log.debug(USER_WITH_ID_NOT_FOUND_DEBUG, id);
+            throw new NotFoundException(String.format(USER_NOT_FOUND, id));
+        }
+        userDao.deleteById(id);
+        log.debug("User id {} has been removed.", id);
+    }
+
     public void addFriend(Long id, Long friendId) {
         validateUsers(id, friendId);
         userDao.addFriend(id, friendId);

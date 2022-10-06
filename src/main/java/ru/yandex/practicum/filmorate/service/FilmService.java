@@ -60,6 +60,15 @@ public class FilmService {
         return film;
     }
 
+    public void removeFilm(Long id) {
+        if (!filmDao.existsById(id)) {
+            log.debug(FILM_WITH_ID_NOT_FOUND_DEBUG, id);
+            throw new NotFoundException(String.format(FILM_NOT_FOUND, id));
+        }
+        filmDao.deleteById(id);
+        log.debug("Film id {} has been removed.", id);
+    }
+
     public void addLike(Long id, Long userId) {
         validateExisting(id, userId);
         if (likesDao.isLikeExist(userId, id)) {
