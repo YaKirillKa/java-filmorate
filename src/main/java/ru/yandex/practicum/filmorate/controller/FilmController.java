@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,6 +85,27 @@ public class FilmController {
         Film film = filmMapper.mapToFilm(filmDto);
         film = filmService.update(film.getId(), film);
         return conversionService.convert(film, FilmDto.class);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query, @RequestParam(name = "by") List<String> params) {
+        boolean canMatchDirector = false;
+        boolean canMatchTitle = false;
+        List<Boolean> temp = new ArrayList<>();
+        for (String s : params) {
+            if (s.equals("director")) {
+                canMatchDirector = true;
+            } else if (s.equals("title")) {
+                canMatchTitle = true;
+            } else {
+                throw new NotFoundException("Invalid request parameter :" + s);
+            }
+        }
+        temp.add(canMatchDirector);
+        temp.add(canMatchTitle);
+        return filmService.search(query, temp).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
     }
 
 }

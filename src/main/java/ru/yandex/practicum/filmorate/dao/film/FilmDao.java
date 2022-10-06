@@ -53,4 +53,11 @@ public interface FilmDao {
      */
     void deleteById(Long id);
 
+    /**
+     *
+     * @param titleQuery substring for searching by names
+     * @param directorQuery substring for searching by directors
+     * @return all films satisfying the request
+     */
+    List<Film> findFilms(String titleQuery, String directorQuery);
 }
