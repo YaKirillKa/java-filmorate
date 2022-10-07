@@ -55,7 +55,8 @@ public interface FilmDao {
 
 
     /**
-     * Finding {@link Film} that both users have liked
+     * Returns {@link Film} that both users have liked
+     *
      * @param userId of a first user.
      * @param friendId of a other user
      * @return {@link List<Film>}

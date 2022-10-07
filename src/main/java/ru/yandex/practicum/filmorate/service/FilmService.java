@@ -81,7 +81,8 @@ public class FilmService {
     public List<Film> getCommonFilms(Long userId, Long friendId) {
         if (!userService.existById(userId)) {
             throw new NotFoundException(String.format(USER_NOT_FOUND, userId));
-        } else if (!userService.existById(friendId)) {
+        }
+        if (!userService.existById(friendId)) {
             throw new NotFoundException(String.format(USER_NOT_FOUND, friendId));
         }
         return filmDao.findCommonFilmsByUsersId(userId, friendId);
