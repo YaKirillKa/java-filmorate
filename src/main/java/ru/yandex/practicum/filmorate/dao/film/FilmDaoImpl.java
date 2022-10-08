@@ -11,7 +11,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.filmorate.dao.director.DirectorDao;
 import ru.yandex.practicum.filmorate.dao.genre.GenreDao;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -46,15 +48,22 @@ public class FilmDaoImpl implements FilmDao {
             "GROUP BY f.id ORDER BY likes DESC";
 
 
+    private static final String SELECT_FILM_DIRECTORS_SQL = "SELECT director_id FROM film_director WHERE film_id = ?";
+    private static final String INSERT_FILM_DIRECTORS_SQL = "INSERT INTO film_director VALUES(?,?)";
+    private static final String DELETE_FILM_DIRECTORS_SQL = "DELETE FROM film_director WHERE film_id = ? AND director_id = ?";
+
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
     private final GenreDao genreDao;
+    private final DirectorDao directorDao;
     private final RowMapper<Film> filmMapper;
 
     @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate, GenreDao genreDao, RowMapper<Film> filmMapper) {
+    public FilmDaoImpl(JdbcTemplate jdbcTemplate, GenreDao genreDao, DirectorDao directorDao, RowMapper<Film> filmMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.genreDao = genreDao;
+        this.directorDao = directorDao;
         this.filmMapper = filmMapper;
     }
 
@@ -63,8 +72,8 @@ public class FilmDaoImpl implements FilmDao {
     public List<Film> findAll() {
         List<Film> films = jdbcTemplate.query(SELECT_ALL_SQL, filmMapper);
         for (Film film : films) {
-            Set<Genre> genres = new HashSet<>(genreDao.findByFilmId(film.getId()));
-            film.setGenres(genres);
+            film.setGenres(new HashSet<>(genreDao.findByFilmId(film.getId())));
+            film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));
         }
         return films;
     }
@@ -73,14 +82,13 @@ public class FilmDaoImpl implements FilmDao {
     @Transactional
     public Optional<Film> findById(Long id) {
         Film film = null;
-        Set<Genre> genres;
         try {
             film = jdbcTemplate.queryForObject(SELECT_FILM_SQL, filmMapper, id);
             if (film == null) {
                 return Optional.empty();
             }
-            genres = new HashSet<>(genreDao.findByFilmId(id));
-            film.setGenres(genres);
+            film.setGenres(new HashSet<>(genreDao.findByFilmId(id)));
+            film.setDirectors(new HashSet<>(directorDao.findByFilmId(id)));
         } catch (DataAccessException e) {
             log.debug("Wrong ID: {}, message: {}", id, e.getMessage());
         }
@@ -104,8 +112,12 @@ public class FilmDaoImpl implements FilmDao {
         final long id = Objects.requireNonNull(keyHolder.getKey()).longValue();
         film.setId(id);
         if (film.getGenres() != null) {
-            updateGenres(film, INSERT_FILM_GENRES_SQL,
+            updateFilmData(film, INSERT_FILM_GENRES_SQL,
                     film.getGenres().stream().map(Genre::getId).collect(Collectors.toList()));
+        }
+        if (film.getDirectors() != null) {
+            updateFilmData(film, INSERT_FILM_DIRECTORS_SQL,
+                    film.getDirectors().stream().map(Director::getId).collect(Collectors.toList()));
         }
         return film;
     }
@@ -121,7 +133,7 @@ public class FilmDaoImpl implements FilmDao {
                 film.getMpa().getId(),
                 id);
         if (film.getGenres() == null) {
-            film.setGenres(new HashSet<>());
+            film.setGenres(Collections.emptySet());
         }
         List<Long> currentGenres = jdbcTemplate.query(SELECT_GENRES_FILM_SQL,
                 ((rs, rowNum) -> rs.getLong("genre_id")), id);
@@ -132,8 +144,23 @@ public class FilmDaoImpl implements FilmDao {
         List<Long> genresToInsert = newGenres.stream()
                 .filter(i -> !currentGenres.contains(i))
                 .collect(Collectors.toList());
-        updateGenres(film, DELETE_FILM_GENRES_SQL, genresToRemove);
-        updateGenres(film, INSERT_FILM_GENRES_SQL, genresToInsert);
+        updateFilmData(film, DELETE_FILM_GENRES_SQL, genresToRemove);
+        updateFilmData(film, INSERT_FILM_GENRES_SQL, genresToInsert);
+
+        if (film.getDirectors() == null) {
+            film.setDirectors(Collections.emptySet());
+        }
+        List<Long> currentDirectors = jdbcTemplate.query(SELECT_FILM_DIRECTORS_SQL,
+                ((rs, rowNum) -> rs.getLong("director_id")), id);
+        List<Long> newDirectors = film.getDirectors().stream().map(Director::getId).collect(Collectors.toList());
+        List<Long> directorsToRemove = currentDirectors.stream()
+                .filter(i -> !newDirectors.contains(i))
+                .collect(Collectors.toList());
+        List<Long> directorsToInsert = newDirectors.stream()
+                .filter(i -> !currentGenres.contains(i))
+                .collect(Collectors.toList());
+        updateFilmData(film, DELETE_FILM_DIRECTORS_SQL, directorsToRemove);
+        updateFilmData(film, INSERT_FILM_DIRECTORS_SQL, directorsToInsert);
 
     }
 
@@ -157,20 +184,20 @@ public class FilmDaoImpl implements FilmDao {
         return films;
     }
 
-    private void updateGenres(Film film, String query, List<Long> genresId) {
-        if (genresId.isEmpty()) {
+    private void updateFilmData(Film film, String query, List<Long> data) {
+        if (data.isEmpty()) {
             return;
         }
         jdbcTemplate.batchUpdate(query, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setLong(1, film.getId());
-                ps.setLong(2, genresId.get(i));
+                ps.setLong(2, data.get(i));
             }
 
             @Override
             public int getBatchSize() {
-                return genresId.size();
+                return data.size();
             }
         });
     }
