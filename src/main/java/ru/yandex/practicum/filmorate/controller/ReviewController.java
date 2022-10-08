@@ -29,7 +29,7 @@ public class ReviewController {
 
     @GetMapping
     public List<ReviewDto> findByFilmId(@RequestParam(required = false) Long filmId,
-                                   @RequestParam(defaultValue = "10", required = false) Integer count) {
+                                        @RequestParam(defaultValue = "10", required = false) Integer count) {
         return reviewService.findByFilmId(filmId, count).stream()
                 .map(review -> conversionService.convert(review, ReviewDto.class))
                 .collect(Collectors.toList());
@@ -53,9 +53,7 @@ public class ReviewController {
 
     @PutMapping("/{id}/dislike/{userId}")
     public void addDislike(@PathVariable Long id, @PathVariable Long userId) {
-       // reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, false);
-         reviewService.addLike(id, userId, false);
-
+        reviewService.addLike(id, userId, false);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
