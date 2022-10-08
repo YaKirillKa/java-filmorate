@@ -26,14 +26,8 @@ public class ReviewService {
         this.filmService = filmService;
     }
 
-    public List<Review> findAll(Long filmId, Integer count) {
-        if (filmId != null && count != null) {
-            return reviewDao.findByFilmId(filmId, count);
-        } else if (filmId == null && count != null) {
-            return reviewDao.findLimit(count);
-        } else {
-            return reviewDao.findAll();
-        }
+    public List<Review> findByFilmId(Long filmId, Integer count) {
+        return reviewDao.findByFilmId(filmId, count);
     }
 
     public Review findById(Long id) {
@@ -64,7 +58,7 @@ public class ReviewService {
         log.debug("Review {} removed", id);
     }
 
-    public void addLike(Review review, Long reviewId, Long userId, Boolean isLike) {
+    public void addLike(Long reviewId, Long userId, Boolean isLike) {
         validateExisting(reviewId, userId);
         if (reviewDao.isLikeExist(reviewId, userId, isLike)) {
             log.debug("User with ID {} has already liked review with ID {}", userId, reviewId);
@@ -72,7 +66,7 @@ public class ReviewService {
                     String.format("User with ID %s has already liked review with ID %s", userId, reviewId)
             );
         }
-        reviewDao.addLike(review, reviewId, userId, isLike);
+        reviewDao.addLike(reviewId, userId, isLike);
         log.debug("User {} liked review {}", userId, reviewId);
     }
 

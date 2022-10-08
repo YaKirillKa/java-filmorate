@@ -8,13 +8,13 @@ import java.util.Optional;
 public interface ReviewDao {
 
     /**
-     * Returns all reviews.
+     * Returns reviews by the given film id.
      *
-     * @return {@link List} of all review or empty {@link List}.
+     * @param filmId of the review to be returned.
+     * @param count maximum number of reviews to return.
+     * @return {@link List} of all reviews or empty {@link List}.     *
      */
-    List<Review> findAll();
-
-    List<Review> findLimit(int count);
+    List<Review> findByFilmId(Long filmId, int count);
 
     /**
      * Returns {@link Review} by the given id.
@@ -55,12 +55,10 @@ public interface ReviewDao {
      */
     void deleteById(Long id);
 
-    void addLike(Review review, Long reviewId, Long userId, Boolean isLike);
+    void addLike(Long reviewId, Long userId, Boolean isLike);
 
     void removeLike(Long reviewId, Long userId);
 
     boolean isLikeExist(Long reviewId, Long userId, Boolean isLike);
 
-
-    List<Review> findByFilmId(Long filmId, int count);
 }

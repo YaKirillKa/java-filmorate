@@ -6,5 +6,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 
 @Mapper
 public interface ReviewMapper {
+
     Review mapToReview(ReviewDto dto);
+
 }

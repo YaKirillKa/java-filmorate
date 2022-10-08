@@ -28,9 +28,9 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<ReviewDto> findAll(@RequestParam(required = false) Long filmId,
+    public List<ReviewDto> findByFilmId(@RequestParam(required = false) Long filmId,
                                    @RequestParam(defaultValue = "10", required = false) Integer count) {
-        return reviewService.findAll(filmId, count).stream()
+        return reviewService.findByFilmId(filmId, count).stream()
                 .map(review -> conversionService.convert(review, ReviewDto.class))
                 .collect(Collectors.toList());
     }
@@ -47,13 +47,15 @@ public class ReviewController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@Valid @RequestBody(required = false) ReviewDto reviewDto, @PathVariable Long id, @PathVariable Long userId) {
-        reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, true);
+    public void addLike(@PathVariable Long id, @PathVariable Long userId) {
+        reviewService.addLike(id, userId, true);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
-    public void addDislike(@Valid @RequestBody(required = false) ReviewDto reviewDto, @PathVariable Long id, @PathVariable Long userId) {
-        reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, false);
+    public void addDislike(@PathVariable Long id, @PathVariable Long userId) {
+       // reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, false);
+         reviewService.addLike(id, userId, false);
+
     }
 
     @DeleteMapping("/{id}/like/{userId}")
