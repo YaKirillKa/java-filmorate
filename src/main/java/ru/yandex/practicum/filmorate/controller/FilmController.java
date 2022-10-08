@@ -42,6 +42,11 @@ public class FilmController {
         return conversionService.convert(film, FilmDto.class);
     }
 
+    @DeleteMapping("/{id}")
+    public void removeFilm(@PathVariable Long id) {
+        filmService.removeFilm(id);
+    }
+
     @GetMapping("/popular")
     public List<FilmDto> getPopular(@RequestParam(defaultValue = "10", required = false) Integer count) {
         return filmService.getPopular(count).stream()
