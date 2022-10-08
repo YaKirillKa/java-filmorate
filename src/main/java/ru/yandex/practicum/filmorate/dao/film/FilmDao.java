@@ -61,4 +61,13 @@ public interface FilmDao {
      * @return all films satisfying the request.
      */
     List<Film> findFilms(String titleQuery, String directorQuery);
+
+    /**
+     * Returns {@link Film} that both users have liked.
+     *
+     * @param userId of a first user.
+     * @param friendId of a other user
+     * @return {@link List<Film>}
+     */
+    List<Film> findCommonFilmsByUsersId(Long userId, Long friendId);
 }
