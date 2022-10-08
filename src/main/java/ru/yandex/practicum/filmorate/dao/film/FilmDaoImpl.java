@@ -41,6 +41,12 @@ public class FilmDaoImpl implements FilmDao {
     private static final String SELECT_GENRES_FILM_SQL = "SELECT genre_id FROM film_genre WHERE film_id = ?";
     private static final String INSERT_FILM_GENRES_SQL = "INSERT INTO film_genre VALUES (?,?)";
     private static final String DELETE_FILM_GENRES_SQL = "DELETE FROM film_genre WHERE film_id = ? AND genre_id = ?";
+    private static final String SELECT_LIKES_INTERSECTION_SQL = "SELECT f.*, m.name mpa_name, COUNT(user_id) likes " +
+            "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id LEFT JOIN film_likes fl ON fl.film_id = f.id " +
+            "WHERE f.id IN (SELECT film_id FROM film_likes fl WHERE fl.user_id = ?) " +
+            "AND f.id IN (SELECT film_id FROM film_likes fl WHERE fl.user_id = ?) " +
+            "GROUP BY f.id ORDER BY likes DESC";
+
 
     private static final String SELECT_FILM_DIRECTORS_SQL = "SELECT director_id FROM film_director WHERE film_id = ?";
     private static final String INSERT_FILM_DIRECTORS_SQL = "INSERT INTO film_director VALUES(?,?)";
@@ -166,6 +172,16 @@ public class FilmDaoImpl implements FilmDao {
     @Override
     public void deleteById(Long id) {
         jdbcTemplate.update(DELETE_FILM_SQL, id);
+    }
+
+    @Override
+    public List<Film> findCommonFilmsByUsersId(Long userId, Long friendId) {
+        List<Film> films = jdbcTemplate.query(SELECT_LIKES_INTERSECTION_SQL, filmMapper, userId, friendId);
+        for (Film film : films) {
+            Set<Genre> genres = new HashSet<>(genreDao.findByFilmId(film.getId()));
+            film.setGenres(genres);
+        }
+        return films;
     }
 
     private void updateFilmData(Film film, String query, List<Long> data) {
