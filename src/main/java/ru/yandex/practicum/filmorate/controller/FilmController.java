@@ -48,10 +48,7 @@ public class FilmController {
     }
 
     @GetMapping("/common")
-    public List<FilmDto> getCommonFilms(
-            @RequestParam(name = "userId") Long userId,
-            @RequestParam(name = "friendId") Long friendId
-    ) {
+    public List<FilmDto> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         return filmService.getCommonFilms(userId, friendId).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
