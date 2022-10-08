@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
-    private static final String FILM_WITH_ID_NOT_FOUND_DEBUG = "Film with id {} not found";
+    public static final String FILM_WITH_ID_NOT_FOUND_DEBUG = "Film with id {} not found";
     public static final String FILM_NOT_FOUND = "Film %s doesn't exist";
     public static final String USER_NOT_FOUND = "User with id %d doesn't exists";
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -98,6 +98,10 @@ public class FilmService {
 
     public List<Film> getPopular(Integer count) {
         return likesDao.getPopular(count);
+    }
+
+    public boolean existsById(Long id) {
+        return filmDao.existsById(id);
     }
 
     public List<Film> getCommonFilms(Long userId, Long friendId) {
