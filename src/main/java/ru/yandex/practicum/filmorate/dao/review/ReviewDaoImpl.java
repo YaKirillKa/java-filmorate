@@ -26,7 +26,7 @@ public class ReviewDaoImpl implements ReviewDao {
     private static final String SELECT_REVIEW_BY_ID_SQL = SELECT_DEFAULT_REVIEWS_SQL +
             "WHERE r.id = nvl(?, r.id) GROUP BY r.id";
     private static final String SELECT_REVIEW_BY_FILM_SQL = SELECT_DEFAULT_REVIEWS_SQL +
-            "WHERE r.film_id = nvl(?, r.film_id) GROUP BY r.id ORDER BY useful DESC, r.id LIMIT nvl(?, 10)";
+            "WHERE r.film_id = nvl(?, r.film_id) GROUP BY r.id ORDER BY useful DESC, r.id LIMIT ?";
     private static final String INSERT_REVIEW_SQL = "INSERT INTO review(content, is_positive, user_id, film_id)" +
             "VALUES (?, ?, ?, ?)";
     private static final String UPDATE_REVIEW_SQL = "UPDATE review SET content = ?, is_positive = ?, user_id = ?, " +
