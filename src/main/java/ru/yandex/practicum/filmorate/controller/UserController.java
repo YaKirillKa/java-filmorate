@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -40,10 +41,22 @@ public class UserController {
         return conversionService.convert(user, UserDto.class);
     }
 
+    @DeleteMapping("/{id}")
+    public void removeUser(@PathVariable Long id) {
+        userService.removeUser(id);
+    }
+
     @GetMapping("{id}/friends")
     public List<UserDto> getFriends(@PathVariable Long id) {
         return userService.getFriends(id).stream()
                 .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("{id}/feed")
+    public List<EventDto> getFeed(@PathVariable Long id) {
+        return userService.getFeed(id).stream()
+                .map(event -> conversionService.convert(event, EventDto.class))
                 .collect(Collectors.toList());
     }
 
