@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.director.DirectorDao;
+import ru.yandex.practicum.filmorate.dao.genre.GenreDao;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.util.HashSet;
 import java.util.List;
 
 @Repository
@@ -23,11 +26,16 @@ public class LikesDaoImpl implements LikesDao {
 
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Film> rowMapper;
+    private final GenreDao genreDao;
+    private final DirectorDao directorDao;
 
     @Autowired
-    public LikesDaoImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> filmMapper) {
+    public LikesDaoImpl(JdbcTemplate jdbcTemplate, RowMapper<Film> filmMapper,
+                        GenreDao genreDao, DirectorDao directorDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.rowMapper = filmMapper;
+        this.genreDao = genreDao;
+        this.directorDao = directorDao;
     }
 
     @Override
@@ -42,7 +50,12 @@ public class LikesDaoImpl implements LikesDao {
 
     @Override
     public List<Film> getPopular(int count) {
-        return jdbcTemplate.query(SELECT_POPULAR_SQL, rowMapper, count);
+        List<Film> films = jdbcTemplate.query(SELECT_POPULAR_SQL, rowMapper, count);
+        for (Film film : films) {
+            film.setGenres(new HashSet<>(genreDao.findByFilmId(film.getId())));
+            film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));
+        }
+        return films;
     }
 
     @Override

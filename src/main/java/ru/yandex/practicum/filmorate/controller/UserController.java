@@ -41,6 +41,11 @@ public class UserController {
         return conversionService.convert(user, UserDto.class);
     }
 
+    @DeleteMapping("/{id}")
+    public void removeUser(@PathVariable Long id) {
+        userService.removeUser(id);
+    }
+
     @GetMapping("{id}/friends")
     public List<UserDto> getFriends(@PathVariable Long id) {
         return userService.getFriends(id).stream()
