@@ -19,39 +19,26 @@ import java.util.Optional;
 
 @Repository
 public class ReviewDaoImpl implements ReviewDao {
-    private static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM review WHERE id = ?)";
-    private static final String SELECT_ALL_SQL =
-            "SELECT r.*, SUM(CASE WHEN l.is_like THEN 1 WHEN NOT l.is_like THEN -1 else 0 END) as useful " +
-                    "FROM REVIEW r LEFT JOIN REVIEW_LIKES l ON l.review_id = r.id GROUP BY r.ID ORDER BY useful DESC, r.ID";
 
-    private static final String SELECT_LIMIT_SQL =
+    private static final String SELECT_DEFAULT_REVIEWS_SQL =
             "SELECT r.*, SUM(CASE WHEN l.is_like THEN 1 WHEN NOT l.is_like THEN -1 else 0 END) as useful " +
-                    "FROM REVIEW r LEFT JOIN REVIEW_LIKES l ON l.review_id = r.id GROUP BY r.ID ORDER BY useful DESC, r.ID LIMIT ?";
-
-    private static final String SELECT_REVIEW_BY_FILM_SQL =
-            "SELECT r.*, SUM(CASE WHEN l.is_like THEN 1 WHEN NOT l.is_like THEN -1 else 0 END) as useful " +
-                    "FROM REVIEW r LEFT JOIN REVIEW_LIKES l ON l.review_id = r.id GROUP BY r.id HAVING r.film_id = ? " +
-                    "ORDER BY useful DESC, r.id LIMIT ?";
-    private static final String SELECT_REVIEW_BY_ID_SQL =
-            "SELECT r.*, SUM(CASE WHEN l.is_like THEN 1 WHEN NOT l.is_like THEN -1 else 0 END) as useful " +
-                    "FROM REVIEW r LEFT JOIN REVIEW_LIKES l ON l.review_id = r.id GROUP BY r.id HAVING r.id = ?";
-
+                    "FROM review r LEFT JOIN review_likes l ON l.review_id = r.id GROUP BY r.id ";
+    private static final String SELECT_ALL_SQL = SELECT_DEFAULT_REVIEWS_SQL + "ORDER BY useful DESC, r.id";
+    private static final String SELECT_LIMIT_SQL = SELECT_DEFAULT_REVIEWS_SQL + "ORDER BY useful DESC, r.id LIMIT ?";
+    private static final String SELECT_REVIEW_BY_FILM_SQL = SELECT_DEFAULT_REVIEWS_SQL +
+            "HAVING r.film_id = ? ORDER BY useful DESC, r.id LIMIT ?";
+    private static final String SELECT_REVIEW_BY_ID_SQL = SELECT_DEFAULT_REVIEWS_SQL + "HAVING r.id = ?";
     private static final String INSERT_REVIEW_SQL = "INSERT INTO review(content, is_positive, user_id, film_id)" +
             "VALUES (?, ?, ?, ?)";
-    private static final String UPDATE_REVIEW_SQL = "UPDATE review SET content = ?, is_positive = ?, user_id = ?, film_id = ? " +
-            "WHERE id = ?";
-    private static final String SELECT_USEFUL_SQL =
-            "SELECT SUM(CASE WHEN is_like THEN 1 WHEN NOT is_like THEN -1 else 0 END) " +
-                    "FROM review_likes WHERE review_id = ?";
-
-    private static final String INSERT_LIKE_SQL = "INSERT INTO review_likes (review_id, user_id, is_like) VALUES(?, ?, ?)";
-
+    private static final String UPDATE_REVIEW_SQL = "UPDATE review SET content = ?, is_positive = ?, user_id = ?, " +
+            "film_id = ? WHERE id = ?";
+    private static final String INSERT_LIKE_SQL = "INSERT INTO review_likes (review_id, user_id, is_like) " +
+            "VALUES(?, ?, ?)";
     private static final String DELETE_LIKE_SQL = "DELETE FROM review_likes WHERE review_id = ? AND user_id = ?";
-
     private static final String DELETE_REVIEW_SQL = "DELETE FROM review WHERE id = ?";
-
-    private static final String SELECT_LIKE_EXIST = "SELECT count(*) FROM review_likes WHERE is_like = ? AND review_id = ? AND user_id = ?";
-
+    private static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM review WHERE id = ?)";
+    private static final String SELECT_LIKE_EXIST_SQL ="SELECT EXISTS(SELECT * FROM review_likes " +
+            "WHERE is_like = ? AND review_id = ? AND user_id = ?)";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Review> reviewMapper;
@@ -64,14 +51,12 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public List<Review> findAll() {
-        List<Review> reviews = jdbcTemplate.query(SELECT_ALL_SQL, reviewMapper);
-        return reviews;
+        return jdbcTemplate.query(SELECT_ALL_SQL, reviewMapper);
     }
 
     @Override
     public List<Review> findLimit(int count) {
-        List<Review> reviews = jdbcTemplate.query(SELECT_LIMIT_SQL, reviewMapper, count);
-        return reviews;
+        return jdbcTemplate.query(SELECT_LIMIT_SQL, reviewMapper, count);
     }
 
     @Override
@@ -104,19 +89,16 @@ public class ReviewDaoImpl implements ReviewDao {
         }, keyHolder);
         Long reviewId = Objects.requireNonNull(keyHolder.getKey()).longValue();
         review.setReviewId(reviewId);
-        review.setUseful(Optional.ofNullable(jdbcTemplate.queryForObject(SELECT_USEFUL_SQL, Long.class,
-                reviewId)).orElse(0L));
+        review.setUseful(0L);
         return review;
     }
 
     @Override
     public void updateReview(Long id, Review review) {
         Optional<Review> oldReview = findById(id);
-        if (oldReview.isPresent()) {
-            jdbcTemplate.update(UPDATE_REVIEW_SQL,
-                    review.getContent(), review.getIsPositive(),
-                    oldReview.get().getUserId(), oldReview.get().getFilmId(), id);
-        }
+        oldReview.ifPresent(value -> jdbcTemplate.update(UPDATE_REVIEW_SQL,
+                review.getContent(), review.getIsPositive(),
+                value.getUserId(), value.getFilmId(), id));
     }
 
     @Override
@@ -130,10 +112,10 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     @Override
-    public void addLike(Optional<Review> review, Long reviewId, Long userId, Boolean isLike) {
+    public void addLike(Review review, Long reviewId, Long userId, Boolean isLike) {
         jdbcTemplate.update(INSERT_LIKE_SQL, reviewId, userId, isLike);
-        if (review.isPresent())
-            updateReview(reviewId, review.get());
+        if (review !=null)
+            updateReview(reviewId, review);
     }
 
     @Override
@@ -143,6 +125,7 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public boolean isLikeExist(Long reviewId, Long userId, Boolean isLike) {
-        return jdbcTemplate.queryForObject(SELECT_LIKE_EXIST, Integer.class, isLike, reviewId, userId) > 0;
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(SELECT_LIKE_EXIST_SQL, Boolean.class,
+                isLike, reviewId, userId));
     }
 }

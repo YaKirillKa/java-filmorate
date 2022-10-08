@@ -55,7 +55,7 @@ public interface ReviewDao {
      */
     void deleteById(Long id);
 
-    void addLike(Optional<Review> review, Long reviewId, Long userId, Boolean isLike);
+    void addLike(Review review, Long reviewId, Long userId, Boolean isLike);
 
     void removeLike(Long reviewId, Long userId);
 

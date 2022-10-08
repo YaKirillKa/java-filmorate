@@ -9,19 +9,13 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ReviewService {
 
     private static final String REVIEW_WITH_ID_NOT_FOUND_DEBUG = "Review with id {} not found";
-
     public static final String REVIEW_NOT_FOUND = "Review %s doesn't exist";
-
-    public static final String REVIEW_NULL_VALUE = "Review %s is null value";
-
     private final Logger log = LoggerFactory.getLogger(getClass());
-
     private final ReviewDao reviewDao;
     private final UserService userService;
     private final FilmService filmService;
@@ -32,16 +26,14 @@ public class ReviewService {
         this.filmService = filmService;
     }
 
-    public List<Review> findAll() {
-        return reviewDao.findAll();
-    }
-
-    public List<Review> findLimit(int count) {
-        return reviewDao.findLimit(count);
-    }
-
-    public List<Review> findByFilmId(Long filmId, Integer count) {
-        return reviewDao.findByFilmId(filmId, count);
+    public List<Review> findAll(Long filmId, Integer count) {
+        if (filmId != null && count != null) {
+            return reviewDao.findByFilmId(filmId, count);
+        } else if (filmId == null && count != null) {
+            return reviewDao.findLimit(count);
+        } else {
+            return reviewDao.findAll();
+        }
     }
 
     public Review findById(Long id) {
@@ -50,7 +42,8 @@ public class ReviewService {
     }
 
     public Review create(Review review) {
-        validateExisting(review);
+        validateUserExisting(review.getUserId());
+        validateFilmExisting(review.getFilmId());
         Review savedReview = reviewDao.createReview(review);
         log.debug("{} has been added.", savedReview);
         return savedReview;
@@ -58,7 +51,8 @@ public class ReviewService {
 
     public Review update(Long id, Review review) {
         validateReviewExisting(id);
-        validateExisting(review);
+        validateUserExisting(review.getUserId());
+        validateFilmExisting(review.getFilmId());
         Review previous = findById(id);
         reviewDao.updateReview(id, review);
         log.debug("Review updated. Before: {}, after: {}", previous, review);
@@ -70,7 +64,7 @@ public class ReviewService {
         log.debug("Review {} removed", id);
     }
 
-    public void addLike(Optional<Review> review, Long reviewId, Long userId, Boolean isLike) {
+    public void addLike(Review review, Long reviewId, Long userId, Boolean isLike) {
         validateExisting(reviewId, userId);
         if (reviewDao.isLikeExist(reviewId, userId, isLike)) {
             log.debug("User with ID {} has already liked review with ID {}", userId, reviewId);
@@ -118,27 +112,6 @@ public class ReviewService {
         if (!userService.existById(userId)) {
             log.debug(UserService.USER_WITH_ID_NOT_FOUND_DEBUG, userId);
             throw new NotFoundException(String.format(UserService.USER_NOT_FOUND, userId));
-        }
-    }
-
-    private void validateExisting(Review review) {
-        if (review.getContent() == null) {
-            log.debug(REVIEW_NULL_VALUE, review);
-            throw new NullPointerException(REVIEW_NULL_VALUE);
-        }
-        if (review.getUserId() == null) {
-            log.debug(REVIEW_NULL_VALUE, review);
-            throw new NullPointerException(REVIEW_NULL_VALUE);
-        }
-        validateUserExisting(review.getUserId());
-        if (review.getFilmId() == null) {
-            log.debug(REVIEW_NULL_VALUE, review);
-            throw new NullPointerException(REVIEW_NULL_VALUE);
-        }
-        validateFilmExisting(review.getFilmId());
-        if (review.getIsPositive() == null) {
-            log.debug(REVIEW_NULL_VALUE, review);
-            throw new NullPointerException(REVIEW_NULL_VALUE);
         }
     }
 }

@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,19 +30,9 @@ public class ReviewController {
     @GetMapping
     public List<ReviewDto> findAll(@RequestParam(required = false) Long filmId,
                                    @RequestParam(defaultValue = "10", required = false) Integer count) {
-        if (filmId != null && count != null) {
-            return reviewService.findByFilmId(filmId, count).stream()
-                    .map(review -> conversionService.convert(review, ReviewDto.class))
-                    .collect(Collectors.toList());
-        } else if (filmId == null && count != null) {
-            return reviewService.findLimit(count).stream()
-                    .map(review -> conversionService.convert(review, ReviewDto.class))
-                    .collect(Collectors.toList());
-        } else {
-            return reviewService.findAll().stream()
-                    .map(review -> conversionService.convert(review, ReviewDto.class))
-                    .collect(Collectors.toList());
-        }
+        return reviewService.findAll(filmId, count).stream()
+                .map(review -> conversionService.convert(review, ReviewDto.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
@@ -59,24 +48,12 @@ public class ReviewController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@Valid @RequestBody(required = false) ReviewDto reviewDto, @PathVariable Long id, @PathVariable Long userId) {
-        Optional<Review> review;
-        if (reviewDto != null) {
-            review = Optional.of(reviewMapper.mapToReview(reviewDto));
-        } else {
-            review = Optional.empty();
-        }
-        reviewService.addLike(review, id, userId, true);
+        reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, true);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
     public void addDislike(@Valid @RequestBody(required = false) ReviewDto reviewDto, @PathVariable Long id, @PathVariable Long userId) {
-        Optional<Review> review;
-        if (reviewDto != null) {
-            review = Optional.of(reviewMapper.mapToReview(reviewDto));
-        } else {
-            review = Optional.empty();
-        }
-        reviewService.addLike(review, id, userId, false);
+        reviewService.addLike(reviewMapper.mapToReview(reviewDto), id, userId, false);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
