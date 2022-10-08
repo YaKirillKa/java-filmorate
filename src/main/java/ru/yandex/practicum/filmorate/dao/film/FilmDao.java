@@ -33,7 +33,7 @@ public interface FilmDao {
     /**
      * Saves the given {@link Film} by the given id.
      *
-     * @param id of the film to be updated.
+     * @param id   of the film to be updated.
      * @param film the film to be saved.
      */
     void updateFilm(Long id, Film film);
@@ -54,10 +54,11 @@ public interface FilmDao {
     void deleteById(Long id);
 
     /**
+     * Returns all movies that contain the desired substring in the title or the name of the director.
      *
-     * @param titleQuery substring for searching by names
-     * @param directorQuery substring for searching by directors
-     * @return all films satisfying the request
+     * @param titleQuery    substring for searching by names.
+     * @param directorQuery substring for searching by directors.
+     * @return all films satisfying the request.
      */
     List<Film> findFilms(String titleQuery, String directorQuery);
 }

@@ -45,13 +45,10 @@ public class FilmDaoImpl implements FilmDao {
     private static final String SELECT_FILM_DIRECTORS_SQL = "SELECT director_id FROM film_director WHERE film_id = ?";
     private static final String INSERT_FILM_DIRECTORS_SQL = "INSERT INTO film_director VALUES(?,?)";
     private static final String DELETE_FILM_DIRECTORS_SQL = "DELETE FROM film_director WHERE film_id = ? AND director_id = ?";
-    private static final String SELECT_FILMS_BY_SUBSTRING_DIRECTOR = "SELECT f.*, m.NAME as mpa_name " +
+    private static final String SELECT_FILMS_BY_SUBSTRING_SQL = "SELECT f.*, m.NAME as mpa_name " +
             "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id LEFT JOIN film_director fd ON fd.film_id=f.id " +
-            "LEFT JOIN director d ON d.id=fd.director_id WHERE LOWER(d.NAME) LIKE ? OR LOWER(f.NAME) LIKE ? " +
+            "LEFT JOIN director d ON d.id = fd.director_id WHERE LOWER(d.NAME) LIKE ? OR LOWER(f.NAME) LIKE ? " +
             "ORDER BY f.id DESC ";
-
-
-
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
     private final GenreDao genreDao;
@@ -175,7 +172,7 @@ public class FilmDaoImpl implements FilmDao {
 
     @Override
     public List<Film> findFilms(String titleQuery, String directorQuery) {
-        List<Film> films = jdbcTemplate.query(SELECT_FILMS_BY_SUBSTRING_DIRECTOR, filmMapper,directorQuery,titleQuery);
+        List<Film> films = jdbcTemplate.query(SELECT_FILMS_BY_SUBSTRING_SQL, filmMapper, directorQuery, titleQuery);
         for (Film film : films) {
             film.setGenres(new HashSet<>(genreDao.findByFilmId(film.getId())));
             film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));

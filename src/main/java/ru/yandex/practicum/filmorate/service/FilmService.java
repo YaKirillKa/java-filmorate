@@ -98,7 +98,7 @@ public class FilmService {
     public List<Film> search(String query, List<Boolean> params) {
         String titleQuery = params.get(1) ? query.toLowerCase() : query.toUpperCase();
         String directorQuery = params.get(0) ? query.toLowerCase() : query.toUpperCase();
-        return filmDao.findFilms('%'+titleQuery+'%','%'+directorQuery+'%');
+        return filmDao.findFilms('%' + titleQuery + '%', '%' + directorQuery + '%');
     }
 
     private void validateExisting(Long filmId, Long userId) {
