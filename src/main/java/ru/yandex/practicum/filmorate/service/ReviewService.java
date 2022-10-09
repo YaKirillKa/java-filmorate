@@ -3,9 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.event.EventDao;
 import ru.yandex.practicum.filmorate.dao.review.ReviewDao;
 import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
@@ -19,11 +21,13 @@ public class ReviewService {
     private final ReviewDao reviewDao;
     private final UserService userService;
     private final FilmService filmService;
+    private final EventDao eventDao;
 
-    public ReviewService(ReviewDao reviewDao, UserService userService, FilmService filmService) {
+    public ReviewService(ReviewDao reviewDao, UserService userService, FilmService filmService, EventDao eventDao) {
         this.reviewDao = reviewDao;
         this.userService = userService;
         this.filmService = filmService;
+        this.eventDao = eventDao;
     }
 
     public List<Review> findByFilmId(Long filmId, Integer count) {
@@ -36,25 +40,31 @@ public class ReviewService {
     }
 
     public Review create(Review review) {
-        validateUserExisting(review.getUserId());
+        final Long userId = review.getUserId();
+        validateUserExisting(userId);
         validateFilmExisting(review.getFilmId());
         Review savedReview = reviewDao.createReview(review);
+        eventDao.addEvent(new Event(userId, Event.EventType.REVIEW, Event.Operation.ADD, savedReview.getReviewId()));
         log.debug("{} has been added.", savedReview);
         return savedReview;
     }
 
     public Review update(Long id, Review review) {
-        validateReviewExisting(id);
-        validateUserExisting(review.getUserId());
-        validateFilmExisting(review.getFilmId());
         Review previous = findById(id);
+        Long userId = previous.getUserId();
+        review.setUserId(userId);
+        review.setFilmId(previous.getFilmId());
         reviewDao.updateReview(id, review);
+        eventDao.addEvent(new Event(userId, Event.EventType.REVIEW, Event.Operation.UPDATE, review.getReviewId()));
         log.debug("Review updated. Before: {}, after: {}", previous, review);
         return review;
     }
 
     public void removeReview(Long id) {
+        Review review = findById(id);
         reviewDao.deleteById(id);
+        eventDao.addEvent(new Event(review.getUserId(), Event.EventType.REVIEW,
+                Event.Operation.REMOVE, review.getReviewId()));
         log.debug("Review {} removed", id);
     }
 
@@ -97,8 +107,8 @@ public class ReviewService {
 
     private void validateFilmExisting(Long filmId) {
         if (!filmService.existsById(filmId)) {
-            log.debug(filmService.FILM_WITH_ID_NOT_FOUND_DEBUG, filmId);
-            throw new NotFoundException(String.format(filmService.FILM_NOT_FOUND, filmId));
+            log.debug(FilmService.FILM_WITH_ID_NOT_FOUND_DEBUG, filmId);
+            throw new NotFoundException(String.format(FilmService.FILM_NOT_FOUND, filmId));
         }
     }
 

@@ -11,7 +11,7 @@ public class EventToEventDto implements Converter<Event, EventDto> {
     @Override
     public EventDto convert(Event event) {
         EventDto eventDto = new EventDto();
-        eventDto.setId(event.getId());
+        eventDto.setEventId(event.getId());
         eventDto.setTimestamp(event.getCreated().getTime());
         eventDto.setUserId(event.getUserId());
         eventDto.setOperation(event.getOperation().name());
