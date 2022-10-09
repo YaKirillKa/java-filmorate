@@ -10,7 +10,7 @@ public interface LikesDao {
 
     void removeLike(Long userId, Long filmId);
 
-    List<Film> getPopular(int count);
+    List<Film> getPopular(Long genreId, Integer year, int count);
 
     boolean isLikeExist(Long userId, Long filmId);
 }

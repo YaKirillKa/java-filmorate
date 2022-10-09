@@ -25,6 +25,7 @@ public class FilmDto {
     @JsonProperty(value = "mpa")
     private MpaDto mpaDto;
     private List<GenreDto> genres;
+    private List<DirectorDto> directors;
 
     public Long getId() {
         return id;
@@ -80,6 +81,14 @@ public class FilmDto {
 
     public void setGenres(List<GenreDto> genres) {
         this.genres = genres;
+    }
+
+    public List<DirectorDto> getDirectors() {
+        return directors;
+    }
+
+    public void setDirectors(List<DirectorDto> directors) {
+        this.directors = directors;
     }
 
     @Override

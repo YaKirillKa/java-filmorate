@@ -4,12 +4,15 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,9 +43,39 @@ public class FilmController {
         return conversionService.convert(film, FilmDto.class);
     }
 
+    @DeleteMapping("/{id}")
+    public void removeFilm(@PathVariable Long id) {
+        filmService.removeFilm(id);
+    }
+
     @GetMapping("/popular")
-    public List<FilmDto> getPopular(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        return filmService.getPopular(count).stream()
+    public List<FilmDto> getPopular(
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "10", required = false) Integer count
+    ) {
+        return filmService.getPopular(genreId, year, count).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/director/{id}")
+    public List<FilmDto> findDirectorByFilmId(
+            @PathVariable Long id,
+            @RequestParam(name = "sortBy", defaultValue = "year", required = false) String sort
+    ) {
+        if (List.of("year", "likes").contains(sort)) {
+            return filmService.findFilmsByDirectorId(id, sort).stream()
+                    .map(film -> conversionService.convert(film, FilmDto.class))
+                    .collect(Collectors.toList());
+        } else {
+            throw new NotFoundException(String.format("Unknown sorting type: %s", sort));
+        }
+    }
+
+    @GetMapping("/common")
+    public List<FilmDto> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
+        return filmService.getCommonFilms(userId, friendId).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
     }
@@ -69,6 +102,27 @@ public class FilmController {
         Film film = filmMapper.mapToFilm(filmDto);
         film = filmService.update(film.getId(), film);
         return conversionService.convert(film, FilmDto.class);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDto> search(@RequestParam String query, @RequestParam(name = "by") List<String> params) {
+        boolean canMatchDirector = false;
+        boolean canMatchTitle = false;
+        List<Boolean> temp = new ArrayList<>();
+        for (String s : params) {
+            if (s.equals("director")) {
+                canMatchDirector = true;
+            } else if (s.equals("title")) {
+                canMatchTitle = true;
+            } else {
+                throw new NotFoundException("Invalid request parameter :" + s);
+            }
+        }
+        temp.add(canMatchDirector);
+        temp.add(canMatchTitle);
+        return filmService.search(query, temp).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
     }
 
 }
