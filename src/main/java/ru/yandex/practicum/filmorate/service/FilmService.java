@@ -125,9 +125,23 @@ public class FilmService {
                 .collect(Collectors.toList());
     }
 
-    public List<Film> search(String query, List<Boolean> params) {
-        String titleQuery = params.get(1) ? query.toLowerCase() : query.toUpperCase();
-        String directorQuery = params.get(0) ? query.toLowerCase() : query.toUpperCase();
+    public List<Film> search(String query, List<String> params) {
+        boolean canMatchTitle = false;
+        boolean canMatchDirector = false;
+        for (String s : params) {
+            switch (s) {
+                case ("director"):
+                    canMatchDirector = true;
+                    break;
+                case ("title"):
+                    canMatchTitle = true;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid request parameter :" + s);
+            }
+        }
+        String titleQuery = canMatchTitle ? query.toLowerCase() : query.toUpperCase();
+        String directorQuery = canMatchDirector ? query.toLowerCase() : query.toUpperCase();
         return filmDao.findFilms('%' + titleQuery + '%', '%' + directorQuery + '%');
     }
 

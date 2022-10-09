@@ -2,17 +2,16 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.constraints.ValuesAllowed;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
-
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,18 +58,16 @@ public class FilmController {
                 .collect(Collectors.toList());
     }
 
+    @Validated
     @GetMapping("/director/{id}")
     public List<FilmDto> findDirectorByFilmId(
             @PathVariable Long id,
-            @RequestParam(name = "sortBy", defaultValue = "year", required = false) String sort
+            @RequestParam(name = "sortBy", defaultValue = "year", required = false)
+            @ValuesAllowed(values = {"year", "likes"}) String sort
     ) {
-        if (List.of("year", "likes").contains(sort)) {
-            return filmService.findFilmsByDirectorId(id, sort).stream()
-                    .map(film -> conversionService.convert(film, FilmDto.class))
-                    .collect(Collectors.toList());
-        } else {
-            throw new NotFoundException(String.format("Unknown sorting type: %s", sort));
-        }
+        return filmService.findFilmsByDirectorId(id, sort).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/common")
@@ -106,21 +103,7 @@ public class FilmController {
 
     @GetMapping("/search")
     public List<FilmDto> search(@RequestParam String query, @RequestParam(name = "by") List<String> params) {
-        boolean canMatchDirector = false;
-        boolean canMatchTitle = false;
-        List<Boolean> temp = new ArrayList<>();
-        for (String s : params) {
-            if (s.equals("director")) {
-                canMatchDirector = true;
-            } else if (s.equals("title")) {
-                canMatchTitle = true;
-            } else {
-                throw new NotFoundException("Invalid request parameter :" + s);
-            }
-        }
-        temp.add(canMatchDirector);
-        temp.add(canMatchTitle);
-        return filmService.search(query, temp).stream()
+        return filmService.search(query, params).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
     }
