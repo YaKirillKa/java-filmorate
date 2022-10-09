@@ -87,11 +87,11 @@ class FilmorateApplicationTests {
         User user = createUserObject("TestUser");
         User createdUser = userDao.createUser(user);
         likesDao.addLike(createdUser.getId(), secondFilm.getId());
-        assertThat(likesDao.getPopular(1)).hasSize(1)
+        assertThat(likesDao.getPopular(null, null,1)).hasSize(1)
                 .first().hasFieldOrPropertyWithValue("id", secondFilm.getId())
                 .hasFieldOrPropertyWithValue("name", "Two");
         likesDao.removeLike(createdUser.getId(), secondFilm.getId());
-        assertThat(likesDao.getPopular(2)).hasSize(2)
+        assertThat(likesDao.getPopular(null, null,2)).hasSize(2)
                 .first().hasFieldOrPropertyWithValue("id", film.getId())
                 .hasFieldOrPropertyWithValue("name", "One");
     }
