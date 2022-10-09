@@ -16,13 +16,6 @@ public class LikesDaoImpl implements LikesDao {
 
     private static final String DELETE_LIKE_SQL = "DELETE FROM film_likes WHERE user_id = ? AND film_id = ?";
     private static final String INSERT_LIKE_SQL = "INSERT INTO film_likes values ( ? , ? )";
-//    private static final String SELECT_POPULAR_SQL = "SELECT film.*, mpa.name as mpa_name, count(user_id) rate " +
-//            "FROM film LEFT JOIN film_likes fl ON film.id = fl.film_id " +
-//            "LEFT JOIN mpa ON mpa.id = mpa_id " +
-//            "GROUP BY film.id " +
-//            "ORDER BY rate DESC, film.id " +
-//            "LIMIT ?";
-//    private static final String SELECT_LIKE_EXIST = "SELECT count(*) FROM film_likes WHERE user_id = ? AND film_id = ?";
     private static final String SELECT_LIKE_EXIST = "SELECT EXISTS(" +
         "SELECT * FROM film_likes WHERE user_id = ? AND film_id = ?)";
     private static final String SELECT_POPULAR_SQL = "SELECT DISTINCT f.*, m.name AS mpa_name, " +
