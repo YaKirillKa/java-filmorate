@@ -96,8 +96,8 @@ public class FilmService {
         log.debug("User {} removed like from film {}", userId, id);
     }
 
-    public List<Film> getPopular(Integer count) {
-        return likesDao.getPopular(count);
+    public List<Film> getPopular(Long genreId, Integer year, Integer count) {
+        return likesDao.getPopular(genreId, year, count);
     }
 
     public boolean existsById(Long id) {

@@ -16,13 +16,14 @@ public class LikesDaoImpl implements LikesDao {
 
     private static final String DELETE_LIKE_SQL = "DELETE FROM film_likes WHERE user_id = ? AND film_id = ?";
     private static final String INSERT_LIKE_SQL = "INSERT INTO film_likes values ( ? , ? )";
-    private static final String SELECT_POPULAR_SQL = "SELECT film.*, mpa.name as mpa_name, count(user_id) rate " +
-            "FROM film LEFT JOIN film_likes fl ON film.id = fl.film_id " +
-            "LEFT JOIN mpa ON mpa.id = mpa_id " +
-            "GROUP BY film.id " +
-            "ORDER BY rate DESC, film.id " +
-            "LIMIT ?";
-    private static final String SELECT_LIKE_EXIST = "SELECT count(*) FROM film_likes WHERE user_id = ? AND film_id = ?";
+    private static final String SELECT_LIKE_EXIST = "SELECT EXISTS(" +
+        "SELECT * FROM film_likes WHERE user_id = ? AND film_id = ?)";
+    private static final String SELECT_POPULAR_SQL = "SELECT DISTINCT f.*, m.name AS mpa_name, " +
+            "(SELECT COUNT(user_id) FROM film_likes fl WHERE fl.film_id = f.id) AS likes " +
+            "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id LEFT JOIN film_genre fg ON fg.film_id = f.id " +
+            "WHERE NVL(?, NVL(fg.genre_id, -1)) = NVL(fg.genre_id, -1) " +
+            "AND NVL(?, YEAR(release_date)) = YEAR(release_date) " +
+            "ORDER BY likes DESC LIMIT ?";
 
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<Film> rowMapper;
@@ -49,8 +50,8 @@ public class LikesDaoImpl implements LikesDao {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
-        List<Film> films = jdbcTemplate.query(SELECT_POPULAR_SQL, rowMapper, count);
+    public List<Film> getPopular(Long genreId, Integer year, int count) {
+        List<Film> films = jdbcTemplate.query(SELECT_POPULAR_SQL, rowMapper, genreId, year, count);
         for (Film film : films) {
             film.setGenres(new HashSet<>(genreDao.findByFilmId(film.getId())));
             film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));
@@ -60,6 +61,6 @@ public class LikesDaoImpl implements LikesDao {
 
     @Override
     public boolean isLikeExist(Long userId, Long filmId) {
-        return jdbcTemplate.queryForObject(SELECT_LIKE_EXIST, Integer.class, userId, filmId) > 0;
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(SELECT_LIKE_EXIST, Boolean.class, userId, filmId));
     }
 }
