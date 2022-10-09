@@ -4,6 +4,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -48,8 +49,12 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> getPopular(@RequestParam(defaultValue = "10", required = false) Integer count) {
-        return filmService.getPopular(count).stream()
+    public List<FilmDto> getPopular(
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "10", required = false) Integer count
+    ) {
+        return filmService.getPopular(genreId, year, count).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
     }
