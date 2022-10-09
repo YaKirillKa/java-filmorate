@@ -84,10 +84,8 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public void updateReview(Long id, Review review) {
-        Optional<Review> oldReview = findById(id);
-        oldReview.ifPresent(value -> jdbcTemplate.update(UPDATE_REVIEW_SQL,
-                review.getContent(), review.getIsPositive(),
-                value.getUserId(), value.getFilmId(), id));
+        jdbcTemplate.update(UPDATE_REVIEW_SQL, review.getContent(), review.getIsPositive(),
+                review.getUserId(), review.getFilmId(), id);
     }
 
     @Override

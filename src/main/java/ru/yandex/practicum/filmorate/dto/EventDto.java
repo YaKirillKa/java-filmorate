@@ -1,19 +1,19 @@
 package ru.yandex.practicum.filmorate.dto;
 
 public class EventDto {
-    private Long id;
+    private Long eventId;
     private Long timestamp;
     private Long userId;
     private String eventType;
     private String operation;
     private Long entityId;
 
-    public Long getId() {
-        return id;
+    public Long getEventId() {
+        return eventId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
     }
 
     public Long getTimestamp() {
