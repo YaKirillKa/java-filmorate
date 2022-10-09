@@ -13,21 +13,21 @@ import java.util.Map;
 public class RecommendationDaoImpl implements RecommendationDao {
 
     private static final String SELECT_EQUAL_USERS_ID_SQL =
-            "SELECT USER_ID " +
-            "FROM FILM_LIKES " +
-            "WHERE USER_ID != :id AND EXISTS (SELECT FILM_ID " +
-            "              FROM FILM_LIKES " +
-            "              WHERE USER_ID = :id) " +
-            "GROUP BY USER_ID";
+            "SELECT user_id " +
+            "FROM film_likes " +
+            "WHERE user_id != :id AND EXISTS (SELECT film_id " +
+            "              FROM film_likes " +
+            "              WHERE user_id = :id) " +
+            "GROUP BY user_id";
 
     private static final String SELECT_ABSENT_FILM_SQL =
-            "SELECT FILM_ID " +
-            "FROM FILM_LIKES " +
-            "WHERE USER_ID IN (:ids) AND " +
-            "      FILM_ID NOT IN (SELECT FILM_ID " +
-            "                  FROM FILM_LIKES " +
-            "                  WHERE USER_ID = :id) " +
-            "GROUP BY FILM_ID";
+            "SELECT film_id " +
+            "FROM film_likes " +
+            "WHERE user_id IN (:ids) AND " +
+            "      film_id NOT IN (SELECT film_id " +
+            "                  FROM film_likes " +
+            "                  WHERE user_id = :id) " +
+            "GROUP BY film_id";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -37,7 +37,7 @@ public class RecommendationDaoImpl implements RecommendationDao {
     }
 
     @Override
-    public List<Long> getEqualUserId(Long id) {
+    public List<Long> getEqualUserIds(Long id) {
         Map<String, Long> parameters = new HashMap<>();
         parameters.put("id", id);
         return namedParameterJdbcTemplate.queryForList(SELECT_EQUAL_USERS_ID_SQL,

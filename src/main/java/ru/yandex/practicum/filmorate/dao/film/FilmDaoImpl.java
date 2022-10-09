@@ -7,8 +7,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
@@ -32,7 +30,6 @@ public class FilmDaoImpl implements FilmDao {
     private static final String IS_EXIST_SQL = "SELECT EXISTS(SELECT * FROM film WHERE id = ?)";
     private static final String SELECT_ALL_SQL = "SELECT f.*, m.NAME as mpa_name " +
             "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id";
-    private static final String SELECT_COLLECTION_SQL = SELECT_ALL_SQL + " WHERE f.id IN (:ids)";
     private static final String SELECT_FILM_SQL = "SELECT f.*, m.NAME as mpa_name " +
             "FROM film f LEFT JOIN mpa m ON m.id = f.mpa_id WHERE f.id = ?";
     private static final String INSERT_FILM_SQL = "INSERT INTO film(name, description, release_date, duration, mpa_id) " +
@@ -59,16 +56,13 @@ public class FilmDaoImpl implements FilmDao {
             "ORDER BY f.id DESC ";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final JdbcTemplate jdbcTemplate;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final GenreDao genreDao;
     private final DirectorDao directorDao;
     private final RowMapper<Film> filmMapper;
 
     @Autowired
-    public FilmDaoImpl(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                       GenreDao genreDao, DirectorDao directorDao, RowMapper<Film> filmMapper) {
+    public FilmDaoImpl(JdbcTemplate jdbcTemplate, GenreDao genreDao, DirectorDao directorDao, RowMapper<Film> filmMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.genreDao = genreDao;
         this.directorDao = directorDao;
         this.filmMapper = filmMapper;
@@ -81,19 +75,6 @@ public class FilmDaoImpl implements FilmDao {
         for (Film film : films) {
             film.setGenres(new HashSet<>(genreDao.findByFilmId(film.getId())));
             film.setDirectors(new HashSet<>(directorDao.findByFilmId(film.getId())));
-        }
-        return films;
-    }
-
-    @Override
-    @Transactional
-    public List<Film> toFilm(List<Long> ids) {
-        MapSqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
-        List<Film> films = namedParameterJdbcTemplate.query(SELECT_COLLECTION_SQL,
-                parameters, filmMapper);
-        for (Film film : films) {
-            Set<Genre> genres = new HashSet<>(genreDao.findByFilmId(film.getId()));
-            film.setGenres(genres);
         }
         return films;
     }

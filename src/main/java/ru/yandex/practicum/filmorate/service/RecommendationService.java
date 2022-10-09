@@ -6,6 +6,8 @@ import ru.yandex.practicum.filmorate.dao.recommendation.RecommendationDao;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RecommendationService {
@@ -18,9 +20,12 @@ public class RecommendationService {
         this.filmDao = filmDao;
     }
 
-    public List<Film> getRecommendation(Long userId) {
-        List<Long> equalUserId = recommendationDao.getEqualUserId(userId);
-        List<Long> absentFilms = recommendationDao.getAbsentFilms(userId, equalUserId);
-        return filmDao.toFilm(absentFilms);
+    public List<Film> getRecommendations(Long userId) {
+        List<Long> equalUserIds = recommendationDao.getEqualUserIds(userId);
+        return recommendationDao.getAbsentFilms(userId, equalUserIds).stream()
+                .map(filmDao::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 }

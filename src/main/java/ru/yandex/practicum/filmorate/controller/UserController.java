@@ -98,8 +98,8 @@ public class UserController {
     }
 
     @GetMapping("{id}/recommendations")
-    public List<FilmDto> getRecommendation(@PathVariable Long id) {
-        return recommendationService.getRecommendation(id).stream()
+    public List<FilmDto> getRecommendations(@PathVariable Long id) {
+        return recommendationService.getRecommendations(id).stream()
                 .map(film -> conversionService.convert(film, FilmDto.class))
                 .collect(Collectors.toList());
     }

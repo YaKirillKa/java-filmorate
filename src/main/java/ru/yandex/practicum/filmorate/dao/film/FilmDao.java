@@ -14,8 +14,6 @@ public interface FilmDao {
      */
     List<Film> findAll();
 
-    List<Film> toFilm(List<Long> film);
-
     /**
      * Returns {@link Film} by the given id.
      *
