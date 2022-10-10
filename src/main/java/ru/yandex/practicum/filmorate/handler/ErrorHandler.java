@@ -11,9 +11,12 @@ import ru.yandex.practicum.filmorate.exceptions.LikeDoesntExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
+import javax.validation.ConstraintViolationException;
+
 @RestControllerAdvice
 public class ErrorHandler {
 
+    private static final String BAD_REQUEST_LOG_PREFIX = "[BAD REQUEST]: {}";
     private final Logger log = LoggerFactory.getLogger(getClass());
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -36,7 +39,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleAlreadyExistsException(final AlreadyExistsException e) {
-        log.debug("[BAD REQUEST]: {}", e.getMessage());
+        log.debug(BAD_REQUEST_LOG_PREFIX, e.getMessage());
         return new ErrorResponse(
                 e.getMessage()
         );
@@ -45,7 +48,16 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIllegalArgumentException(final IllegalArgumentException e) {
-        log.debug("[BAD REQUEST]: {}", e.getMessage());
+        log.debug(BAD_REQUEST_LOG_PREFIX, e.getMessage());
+        return new ErrorResponse(
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(final ConstraintViolationException e) {
+        log.debug(BAD_REQUEST_LOG_PREFIX, e.getMessage());
         return new ErrorResponse(
                 e.getMessage()
         );

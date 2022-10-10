@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Validated
 @RestController
 @RequestMapping("/films")
 public class FilmController {
@@ -58,7 +59,6 @@ public class FilmController {
                 .collect(Collectors.toList());
     }
 
-    @Validated
     @GetMapping("/director/{id}")
     public List<FilmDto> findDirectorByFilmId(
             @PathVariable Long id,
