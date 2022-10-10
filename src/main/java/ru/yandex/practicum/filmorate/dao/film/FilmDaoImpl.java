@@ -47,7 +47,6 @@ public class FilmDaoImpl implements FilmDao {
             "AND f.id IN (SELECT film_id FROM film_likes fl WHERE fl.user_id = ?) " +
             "GROUP BY f.id ORDER BY likes DESC";
 
-
     private static final String SELECT_FILM_DIRECTORS_SQL = "SELECT director_id FROM film_director WHERE film_id = ?";
     private static final String INSERT_FILM_DIRECTORS_SQL = "INSERT INTO film_director VALUES(?,?)";
     private static final String DELETE_FILM_DIRECTORS_SQL = "DELETE FROM film_director WHERE film_id = ? AND director_id = ?";
