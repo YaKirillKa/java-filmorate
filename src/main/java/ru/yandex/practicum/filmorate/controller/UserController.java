@@ -3,9 +3,12 @@ package ru.yandex.practicum.filmorate.controller;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.RecommendationService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -19,11 +22,15 @@ public class UserController {
 
     private final UserService userService;
     private final ConversionService conversionService;
+
+    private final RecommendationService recommendationService;
     private final UserMapper userMapper;
 
-    public UserController(UserService userService, ConversionService conversionService, UserMapper userMapper) {
+    public UserController(UserService userService, ConversionService conversionService, UserMapper userMapper,
+                          RecommendationService recommendationService) {
         this.userService = userService;
         this.conversionService = conversionService;
+        this.recommendationService = recommendationService;
         this.userMapper = userMapper;
     }
 
@@ -40,10 +47,22 @@ public class UserController {
         return conversionService.convert(user, UserDto.class);
     }
 
+    @DeleteMapping("/{id}")
+    public void removeUser(@PathVariable Long id) {
+        userService.removeUser(id);
+    }
+
     @GetMapping("{id}/friends")
     public List<UserDto> getFriends(@PathVariable Long id) {
         return userService.getFriends(id).stream()
                 .map(user -> conversionService.convert(user, UserDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("{id}/feed")
+    public List<EventDto> getFeed(@PathVariable Long id) {
+        return userService.getFeed(id).stream()
+                .map(event -> conversionService.convert(event, EventDto.class))
                 .collect(Collectors.toList());
     }
 
@@ -78,4 +97,10 @@ public class UserController {
         return conversionService.convert(user, UserDto.class);
     }
 
+    @GetMapping("{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable Long id) {
+        return recommendationService.getRecommendations(id).stream()
+                .map(film -> conversionService.convert(film, FilmDto.class))
+                .collect(Collectors.toList());
+    }
 }
